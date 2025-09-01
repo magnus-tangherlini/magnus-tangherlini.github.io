@@ -1,1 +1,82 @@
-
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Project 0</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        .image-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .image-item {
+            text-align: center;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .image-item img {
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+        
+        .image-item p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .centered-heading {
+            text-align: center;
+        }
+        
+        .h2-size-unbolded {
+            font-size: 1.5em;
+            font-weight: normal;
+            text-align: center;
+            margin: 0.83em 0;
+        }
+    </style>    
+</head>
+<body>
+    <h1>Part 1: Selfie: The Wrong Way vs. The Right Way</h1>
+    <div class="image-container">
+        <div class="image-item">
+            <img src="media/magnus_1.png" alt="Selfie - Wrong Way">
+            <p>Up close, shot at 13mm</p>
+        </div>
+        <div class="image-item">
+            <img src="media/magnus_2.png" alt="Selfie - Right Way">
+            <p>A couple steps back, shot at 75mm</p>
+        </div>
+    </div>
+    <h1>Part 2: Architectural Perspective Compression</h1>
+    <p class="h2-size-unbolded">I always liked this street right next to house in Albany</p>
+    <div class="image-container">
+        <div class="image-item">
+            <img src="media/home_1.png" alt="Down my street, shot at 48mm">
+            <p>shot at 48mm</p>
+        </div>
+        <div class="image-item">
+            <img src="media/home_2.png" alt="Walked down my street, shot at 24mm">
+            <p>Walked down a bit, shot at 24mm</p>
+        </div>
+    </div>
+    <p class="h2-size-unbolded">Notice how the shot gets stretched in the second image</p>
+    <h1>Part 3: The Dolly Zoom</h1>
+    <p class="h2-size-unbolded">I was gifted this robot toy many years ago and thought it was perfect for demonstrating current feelings around AI</p>
+    <div class="image-container">
+        <div class="image-item">
+            <img src="media/output.gif" alt="Dolly Zoom Effect with Robot">
+            <p>Dolly zoom effect demonstration</p>
+        </div>  
+    </div>
+</body>
+</html>
