@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Test Page</title>
+  <link rel="stylesheet" href="../style.css"> <!-- your stylesheet -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+  <div class="container">
+    <nav class="sidebar">
+        <h2>Table Of Contents</h2>
+      <ul>
+        <li><a href="#overview">Project Overview</a></li>
+        <li><a href="#getting-started">Getting Started</a></li>
+        <li><a href="#naive-approach">Naive Approach</a></li>
+        <li><a href="#pre-processing-cropping">Pre-Processing: Cropping</a></li>
+        <li><a href="#image-pyramid">Image Pyramid</a></li>
+        <li><a href="#aligning-using-pyramid-speedup">Aligning Using Pyramid Speedup</a></li>
+        <li><a href="#returning-to-the-metric">Returning to the Metric</a></li>
+        <li><a href="#returning-to-our-initial-images">Returning to Our Initial Images</a></li>
+        <li><a href="#Results">Results</a></li>
+        <!-- Add more projects as needed -->
+      </ul>
+    </nav>
+    <main class="content">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a> > 
+            <span class="current">Project 2: Colorizing the Prokudin-Gorskii Photo Collection</span>
+        </nav>
+        
+        <section class="header">
+            <h1>Colorizing the Prokudin-Gorskii Photo Collection</h1>
+            <p class="date">September 9th 2025</p>
+        </section>
+
+        <div class="project-description" id ='overview'>
+            <h1>Project Overview</h1>
+            <p>The goal of this project was to align three seperate color channel images (BGR) captured on glass plates from the Prokudin-Gorskii collection in order to produce a single colored image.</p>
+        </div>
+
+        <div class = "project-details">
+            <h1 id='getting-started'>Getting Started</h1>
+            <p>The initial images in the collection were captured using three separate shots for each image, one for each color channel (Blue, Green, and Red). These images were then stored as glass plate negatives. The three seperate plates we're dealing with are stored with pixel intensity values, ranging from 0 (darkest) to 255 (lightest). . Here is what they look like:</p>
+            <div class = "image-row">
+                <img src="./data/cathedral.jpg" alt="Original Image" width = "300">
+                <img src="./data/monastery.jpg" alt="Original Image" width = "300">
+                <img src="./data/tobolsk.jpg" alt="Original Image" width = "300">
+            </div>
+
+            <h1 id ="naive-approach">Naive Approach</h1>
+            <p>Because we're using blue as our basis for alignment, the best way to approach this problem
+                is to slide the green and red channels across the x and y axes for some specified window, calculate some metric between the green/red plate and the blue plate, and repeat this until 
+                we find a minimum or maximum (depending on the metric). We can then align the green and red plates using the x and y shifts that optimized our metric. 
+                For example, below is a before and after of the smaller images, shifting over a window of [-15, 15], using the L2 norm, and finding which values minimize the norm between the two images:
+            </p>
+            
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><img src='./aligned_photos/cathedral_NCC.jpg' alt = "can't find"></td>
+                        <td>(-1, 1)</td>
+                        <td>(-1, 7)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/monastery_l2.jpg' alt = "can't find"></td>
+                        <td>(0, -6)</td>
+                        <td>(1, 9)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/tobols_l2.jpg' alt = "can't find"></td>
+                        <td>(2, 3)</td>
+                        <td>(3, 6)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+
+            <h1 id ="pre-processing-cropping">Pre-Processing: Cropping</h1>
+            <p>Our alignment is meh right now. It works well on two of them but not so well on one of them. The harsh borders might be throwing something off when minimizing over the L2 norm since those pixels are close in intensity to eachother.
+                 When aligning, I decided to crop the image by about 5% which was found by playing around with different cropping amounts. Here is an example of a cropped image:
+
+            </p>
+            <div class = "image-row natural-sizes">
+                <div class="image-item">
+                    <img src="./aligned_photos/cathedral_before_crop.jpg" alt = "can't find">
+                    <p>Before Crop</p>
+                </div>
+                <div class="image-item">
+                    <img src="./aligned_photos/cathedral_after_crop.jpg" alt = "can't find">
+                    <p>After Crop</p>
+                </div>
+            </div>
+                
+                
+            </div>
+
+            <p>After pre-processing our image, we can return to our naive implementation and see the new best alignments</p>
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                        <th>Time (sec)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><img src='./aligned_photos/cathedral_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, 5)</td>
+                        <td>(3, 12)</td>
+                        <td>L2/NCC</td>
+                        <td>1.08</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/monastery_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, -3)</td>
+                        <td>(2, 3)</td>
+                        <td>L2/NCC</td>
+                        <td>0.94</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/tobolsk_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, 3)</td>
+                        <td>(3, 6)</td>
+                        <td>L2/NCC</td>
+                        <td>0.80</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+
+            <h1 id="image-pyramid">Image Pyramid</h1>
+            <p>Unfortunately, our naive implementation takes too long and isn't very good when working with large images. We can only find offsets between -15 and 15. The idea behind and image pyramid is to downsample our image, align, and then return to our original image with the shifts scaled. 
+                Here is an example of the image pyramid for emir, of height 3, scaling down by a factor of 2.
+            </p>
+            <div class="image-row natural-sizes">
+              <div class="image-item">
+                <img src="./aligned_photos/emir_big.jpg" alt="Can't find" width = "400">
+                <p>Pyramid at level 0 (full scale)</p>
+              </div>
+              <div class="image-item">
+                <img src="./aligned_photos/emir_1.jpg" alt="Can't find" width = "200">
+                <p>Pyramid at level 1</p>
+              </div>
+              <div class="image-item">
+                <img src="./aligned_photos/emir_3.jpg" alt="Can't find" width = "50">
+                <p>Pyramid at level 3</p>
+              </div>
+            </div>
+
+            <div class="image-row natural-sizes">
+                <div class = "image-item">
+                    <img src="./aligned_photos/emir_5.jpg" alt="Can't find" width = "600" style="image-rendering: pixelated;">
+                    <p>Pyramid at level 5 scaled up to view pixels</p>
+                </div>
+            </div>
+
+            <h1 id="aligning-using-pyramid-speedup">Aligning Using Pyramid Speedup</h1>
+            <p>The nice thing about working with smaller images is that we can search over a wider window at smaller resolutions. Then at larger resolution, we can scale those alignments up, turn down the window over which we scan, and search around the scaled up alignment. This allows us to narrow down 
+                our window, speeding up our process, while still retaining a relatively good alignment. 
+            </p>
+            <p>
+                For example, lets say we are scanning over a window of 30 at the smallest resolution and find an alignment located around (7, 10). Scaling that up, we would now want to search around (14, 20) and scan over a window of size 15. 
+            </p>
+            <p>
+                When implementing the pyramid speedup, I decided to include a lot of hyperparameters that included the scale in which to downsample, the height of the pyramid, the initial size to search at the smallest image (which will be scaled down by the scaling factor at each level), crop percentage, and the metric we're using to optimize.
+                I found that the best results for both small and large images came from using a scale of 2, a height of 3, an initial size of 30 to search around, and 95% crop. The metric was hard to pin down. Here is an example of using the L2 or NCC norm to align the image. Using this process takes around 7 seconds compared to >1 minute for our naive implementation. 
+            </p>
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><img src='./aligned_photos/emir_l2.jpg' alt = "can't find" width = "600"></td>
+                        <td>(23, 49)</td>
+                        <td>(30, 73)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+            <h1 id="returning-to-the-metric">Returning to the Metric</h1>
+            <p>It appears that using the L2 and NCC result in similiar alignments. Here is me trying out the L1 norm after hours of banging my head against a wall, and finding that it aligns large images really well! Perhaps it works so well because at lower resolutions, its more robust to pixel intensity values.</p>
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><img src='./aligned_photos/emir_l1.jpg' alt = "can't find" width = "600"></td>
+                        <td>(24, 50)</td>
+                        <td>(41, 104)</td>
+                        <td>L1</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+            <h1 id="returning-to-our-initial-images">Returning To Our Initial Images With Pyramid Speed-up</h1>
+            <p>I decided to return to the initial images we aligned using our naive implementation. Would using the pyramid speedup with the L1 norm work just as well? It turns out one of the images didn't align so well:</p>
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                        <th>Time (sec)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><img src='./aligned_photos/cathedral_l1.jpg' alt = "can't find"></td>
+                        <td>(2, 5)</td>
+                        <td>(0, 8)</td>
+                        <td>L1</td>
+                        <td>0.17</td>
+                      </tr>
+                      <tr>
+                        <td colspan="5">Luckily, I can just change the metric we use to align.</td>
+                      </tr>
+                      <tr>
+                        <td><img src = "./aligned_photos/cathedral_l2.jpg" alt = "can't find"></td>
+                        <td>(2, 5)</td>
+                        <td>(3, 12)</td>
+                        <td>L2/NCC</td>
+                        <td>0.13</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+            </div>
+            <p>So for smaller images, its better to use the L2 norm while for larger images it is better to use the L1 norm. We can see that our pyramid implementation speeds up our process by almost 6x!</p>
+            <h1 id="Results">Results</h1>
+            <p>Here are all of the results using the Pyramid Speed-up</p>
+            <div class="image-with-text">
+                <div class="description">
+                  <table>
+                    <thead>
+                        <tr>
+                        <th>Aligned Image</th>
+                        <th>Green Alignment</th>
+                        <th>Red Alignment</th>
+                        <th>Alignment Method</th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td><img src='./aligned_photos/cathedral_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, 5)</td>
+                        <td>(3, 12)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/monastery_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, -3)</td>
+                        <td>(2, 3)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/tobolsk_cropped_NCC.jpg' alt = "can't find"></td>
+                        <td>(2, 3)</td>
+                        <td>(3, 6)</td>
+                        <td>L2/NCC</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/emir_l1.jpg' alt = "can't find" width = "600"></td>
+                        <td>(24, 50)</td>
+                        <td>(41, 104)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/harvesters_l1.jpg' alt = "harvesters" width = "600"></td>
+                        <td>(17, 60)</td>
+                        <td>(14, 124)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/self_portrait_l1.jpg' alt = "self-portrait" width = "600"></td>
+                        <td>(26, 77)</td>
+                        <td>(35, 174)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/melons.jpg' alt = 'melons' width = "600"></td>
+                        <td>(10, 81)</td>
+                        <td>(14, 178)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/italil.jpg' alt = 'italian' width = "600"></td>
+                        <td>(21, 38)</td>
+                        <td>(35, 76)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/lugano.jpg' alt = 'lugano' width = '600'></td>
+                        <td>(-15, 41)</td>
+                        <td>(-28, 92)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/church.jpg' alt = 'church' width = '600'></td>
+                        <td>(4, 25)</td>
+                        <td>(-4,58)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/icon.jpg' alt = 'icon' width = '600'></td>
+                        <td>(14, 41)</td>
+                        <td>(22, 90)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/siren.jpg' alt = 'siren' width = '600'></td>
+                        <td>(-6, 54)</td>
+                        <td>(-24, 101)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/three_gens.jpg' alt = '3 gens' width = '600'></td>
+                        <td>(11, 53)</td>
+                        <td>(9, 112)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td colspan="4"><h2>And some photos of my choosing</h2></td>
+                      </tr>
+                      <tr>
+                        <td><img src = './aligned_photos/railroad.jpg' alt = 'railroad' width = '600'></td>
+                        <td>(-6, 28)</td>
+                        <td>(-18, 108)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/trees.jpg' alt = 'trees' width = '600'></td>
+                        <td>(-16, 46)</td>
+                        <td>(-50, 115)</td>
+                        <td>L1</td>
+                      </tr>
+                      <tr>
+                        <td><img src='./aligned_photos/rainbow.jpg' alt = 'rainbow' width = '600'></td>
+                        <td>(8, 66)</td>
+                        <td>(5, 141)</td>
+                        <td>L1</td>
+                      </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+  </div>
+
+</body>
+</html>
