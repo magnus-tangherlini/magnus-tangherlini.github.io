@@ -52,7 +52,7 @@
             <p>Because we're using blue as our basis for alignment, the best way to approach this problem
                 is to slide the green and red channels across the x and y axes for some specified window, calculate some metric between the green/red plate and the blue plate, and repeat this until 
                 we find a minimum or maximum (depending on the metric). We can then align the green and red plates using the x and y shifts that optimized our metric. 
-                For example, below is a before and after of the smaller images, shifting over a window of [-15, 15], using the L2 norm, and finding which values minimize the norm between the two images:
+                For example, below is a before and after of the smaller images, shifting over a window of [-15, 15], using the L2 norm and NCC (since the images are small enough the L2 and NCC norm result in similiar shifts), and finding which values minimize the norm between the two images. 
             </p>
             
             <div class="image-with-text">
@@ -109,7 +109,7 @@
                 
             </div>
 
-            <p>After pre-processing our image, we can return to our naive implementation and see the new best alignments</p>
+            <p>After pre-processing our image, we can return to our naive implementation and see the new best alignments.</p>
             <div class="image-with-text">
                 <div class="description">
                   <table>
