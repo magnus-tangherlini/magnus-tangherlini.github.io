@@ -31,10 +31,11 @@ body {
 /* Sidebar styles */
 .sidebar {
     width: 300px;
-    padding: 1em 1em 2em 1em;
+    padding: 3em 1em 2em 1em;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     background: var(--background-white);
     position: fixed;
     top: 0;
