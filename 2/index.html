@@ -154,7 +154,7 @@
             </div>
 
             <h1 id="image-pyramid">Image Pyramid</h1>
-            <p>Unfortunately, our naive implementation takes too long and isn't very good when working with large images. We can only find offsets between -15 and 15. The idea behind and image pyramid is to downsample our image, align, and then return to our original image with the shifts scaled. 
+            <p>Unfortunately, our naive implementation takes too long and isn't very good when working with large images. We can only find offsets between -15 and 15. The idea behind an image pyramid is to downsample our image, align, and then return to our original image with the shifts scaled. 
                 Here is an example of the image pyramid for emir, of height 3, scaling down by a factor of 2.
             </p>
             <div class="image-row natural-sizes">
@@ -280,85 +280,100 @@
                   <table>
                     <thead>
                         <tr>
-                        <th>Aligned Image</th>
-                        <th>Green Alignment</th>
-                        <th>Red Alignment</th>
-                        <th>Alignment Method</th>
+                            <th>Name</th>
+                            <th>Aligned Image</th>
+                            <th>Green Alignment</th>
+                            <th>Red Alignment</th>
+                            <th>Alignment Method</th>
+
                         </tr>
                     </thead>
                     <tr>
+                        <td>Cathedral</td>
                         <td><img src='./aligned_photos/cathedral_cropped_NCC.jpg' alt = "can't find"></td>
                         <td>(2, 5)</td>
                         <td>(3, 12)</td>
                         <td>L2/NCC</td>
                       </tr>
                       <tr>
+                        <td>Monastery</td>
                         <td><img src = './aligned_photos/monastery_cropped_NCC.jpg' alt = "can't find"></td>
                         <td>(2, -3)</td>
                         <td>(2, 3)</td>
                         <td>L2/NCC</td>
                       </tr>
                       <tr>
+                        <td>Tobolsk</td>
                         <td><img src = './aligned_photos/Tobolsk_cropped_NCC.jpg' alt = "can't find"></td>
                         <td>(2, 3)</td>
                         <td>(3, 6)</td>
                         <td>L2/NCC</td>
                       </tr>
                       <tr>
+                        <td>Emir</td>
                         <td><img src='./aligned_photos/emir_l1.jpg' alt = "can't find" width = "600"></td>
                         <td>(24, 50)</td>
                         <td>(41, 104)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Harvesters</td>
                         <td><img src='./aligned_photos/harvesters_l1.jpg' alt = "harvesters" width = "600"></td>
                         <td>(17, 60)</td>
                         <td>(14, 124)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Self Portrait</td>
                         <td><img src='./aligned_photos/self_portrait_l1.jpg' alt = "self-portrait" width = "600"></td>
                         <td>(26, 77)</td>
                         <td>(35, 174)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Melons</td>
                         <td><img src='./aligned_photos/melons.jpg' alt = 'melons' width = "600"></td>
                         <td>(10, 81)</td>
                         <td>(14, 178)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
-                        <td><img src='./aligned_photos/italil.jpg' alt = 'italian' width = "600"></td>
+                        <td>Italil</td>
+                        <td><img src='./aligned_photos/italil.jpg' alt = 'italil' width = "600"></td>
                         <td>(21, 38)</td>
                         <td>(35, 76)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Lugano</td>
                         <td><img src='./aligned_photos/lugano.jpg' alt = 'lugano' width = '600'></td>
                         <td>(-15, 41)</td>
                         <td>(-28, 92)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Church</td>
                         <td><img src='./aligned_photos/church.jpg' alt = 'church' width = '600'></td>
                         <td>(4, 25)</td>
                         <td>(-4,58)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Icon</td>
                         <td><img src='./aligned_photos/icon.jpg' alt = 'icon' width = '600'></td>
                         <td>(14, 41)</td>
                         <td>(22, 90)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Siren</td>
                         <td><img src='./aligned_photos/siren.jpg' alt = 'siren' width = '600'></td>
                         <td>(-6, 54)</td>
                         <td>(-24, 101)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Three Generations</td>
                         <td><img src='./aligned_photos/three_gens.jpg' alt = '3 gens' width = '600'></td>
                         <td>(11, 53)</td>
                         <td>(9, 112)</td>
@@ -368,18 +383,21 @@
                         <td colspan="4"><h2>And some photos of my choosing</h2></td>
                       </tr>
                       <tr>
+                        <td>Railroad</td>
                         <td><img src = './aligned_photos/railroad.jpg' alt = 'railroad' width = '600'></td>
                         <td>(-6, 28)</td>
                         <td>(-18, 108)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Trees</td>
                         <td><img src='./aligned_photos/trees.jpg' alt = 'trees' width = '600'></td>
                         <td>(-16, 46)</td>
                         <td>(-50, 115)</td>
                         <td>L1</td>
                       </tr>
                       <tr>
+                        <td>Rainbow</td>
                         <td><img src='./aligned_photos/rainbow.jpg' alt = 'rainbow' width = '600'></td>
                         <td>(8, 66)</td>
                         <td>(5, 141)</td>
