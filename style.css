@@ -102,13 +102,23 @@ body {
 	border-bottom: 2px solid var(--border-dark);
 	margin-bottom: 2em;
 	padding-bottom: 1em;
+	display: flex;
+	flex-direction: column;
 }
 .header h1 {
 	margin: 0;
 	font-size: 2.5em;
 }
+.header-meta {
+	margin-top: 0.5em;
+    color: var(--secondary-text);
+}
 .date {
-	color: var(--light-text);
+	font-size: 1em;
+	margin-top: 0.25em;
+}
+
+.authorship {
 	font-size: 1em;
 }
 
