@@ -91,11 +91,12 @@ body {
 /* Content styles */
 .content {
     margin-left: 320px; /* Add space for the fixed sidebar */
-    margin-right: 200px; /* Add space on the right side */
+    margin-right: 2em; /* Reduce right margin for more compact layout */
     flex: 1;
     padding: 2em;
     background: var(--background-white);
     box-sizing: border-box;
+    max-width: 1000px; /* Limit maximum width for better readability */
 }
 
 .header {
@@ -185,7 +186,7 @@ th {
 
 /* Allow table images to be larger */
 table img {
-	max-width: 600px !important;
+	max-width: 500px !important;
 }
 
 img {
