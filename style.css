@@ -90,7 +90,7 @@ body {
 
 /* Content styles */
 .content {
-    margin-left: 320px; /* Add space for the fixed sidebar */
+    margin-left: 360px; /* Add space for the fixed sidebar */
     margin-right: 2em; /* Reduce right margin for more compact layout */
     flex: 1;
     padding: 2em;
@@ -125,6 +125,7 @@ body {
 
 .project-description {
 	margin-bottom: 2em;
+    
 }
 .project-details {
 	margin-bottom: 2em;
@@ -135,12 +136,13 @@ body {
 	gap: 2em;
 	justify-content: center;
 	margin-bottom: 2em;
+
 }
 .image-item {
 	text-align: center;
+
 }
 .image-item img {
-	max-width: 200px;
 	height: auto;
 	display: block;
 	margin: 0 auto 0.5em auto;
