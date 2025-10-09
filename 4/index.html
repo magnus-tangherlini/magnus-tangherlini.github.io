@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Test Page</title>
+  <link rel="stylesheet" href="../style.css"> <!-- your stylesheet -->
+  <link rel="stylesheet" href="./style_proj3.css">
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#1-1">1.1 The Photos</a></li>
+                <li><a href="#1-2">1.2 Recovering Homographies</a></li>
+                <li><a href="#1-3">1.3 Warping the Image</a></li>
+                <li><a href="#1-4">1.4 Creating Image Mosaics</a></li>
+                <!-- Add more projects as needed -->
+            </ul>
+        </nav>
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> > 
+                <span class="current">Project 4</span>
+            </nav>
+
+            <section class="header">
+                <h1>Panoramic Photos!</h1>
+                <div class="header-meta">
+                    <p class="authorship">Author: Magnus Tangherlini</p>
+                    <p class="date">October 6th 2025</p>
+                </div>
+            
+            </section>
+            <div class="project-description">
+                <h1>Project Overview</h1>
+                <p>In this project I'll be taking a look at homographies and (auto)stitching to create panoramas</p>
+            </div>
+
+            <div class = 'project-details'>
+                <h1>Part 1: Homographies and Mosaics</h1>
+                <h2 id = '#1-1'>Example Images</h2>
+                <p>Here are examples of pairs of images that have the same center of projection but slight rotations. This documents the change in perspective.</p>
+
+                <h2 id ='#1-2'>Recovering the Homography</h2>
+                <p>The main idea behind a homography is that we can [insert explanation here]</p>
+                <div>
+                    \[ \begin{pmatrix} wx' \\ wy' \\ w \end{pmatrix} = 
+                    \begin{pmatrix}
+                    a & b & c \\
+                    d & e & f \\
+                    g & h & i
+                    \end{pmatrix} \begin{pmatrix} x \\ y \\ 1 \end{pmatrix}
+                    \]
+                </div>
+
+                <p>We can rewrite this as a system of equations</p>
+                <div>
+                    \[
+                    wx' = ax + by + c \\
+                    wy' = dx + ey + f \\
+                    w = gx + hy + i 
+
+                    \]
+                </div>
+                <p>plugging in w we have:</p>
+                <div>
+                    \[
+                    (gx + hy + i)x' = ax + by + c \\
+                    (gx + hy + i)y' = dx + ey + f \\
+                    \]
+                </div>
+                <p>if we're solving for x' and y', i is actually some scaling constant so we can 
+                    set that to 1 allowing us to only solve for 8 unkowns. 
+                </p>
+                <div> 
+                    \[
+                    x' = ax + by + c - gxx' - hyx'\\
+                    y' = dx + ey + f - gxy' - hyy'\\
+                    \]
+                </div>
+                <p>we can now write this in matrix form:</p>
+                <div>
+                    \[ \begin{pmatrix} x' \\ y' \end{pmatrix} = 
+                    \begin{pmatrix}
+                    x & y & 1 & 0 & 0 & 0 & -xx' & -yx'\\
+                    0 & 0 & 0 & x & y & 1 & -xy' & -yy'
+                    \end{pmatrix} \begin{pmatrix} a \\ b \\ c \\ d \\ e \\ f \\ g \\ h \end{pmatrix}
+                    \]
+                </div>
+                <p>The nice thing about this setup is we can use least squares to solve this system of equations. If we select more than four points
+                    least squares will actually reduce a good amount of noise!
+                </p>
+                
+                <p>Here are the images I'm using to warp:</p>
+                <div class = 'image-row' >
+                    <div class = 'image-item'>
+                        <img src = './data/part1/living_room1.png' width = 500>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/living_room2.png' width = 500>
+                    </div>
+                </div>
+                <p>Here are the four correspondences I used:</p>
+                <div class = 'image-item'>
+                    <img src = './output/correspondences_home.png' width = 1000>
+                </div>
+                <p>Computing the homography gets us this:</p>
+                <div>
+                    \[\begin{pmatrix} 1.637 & -0.0651 & -304.4343 \\ 
+                    0.2757 & 1.2824 & -82.9434 \\
+                    0.001 & -0.003 & 1
+                    \end{pmatrix}\]
+                    
+                </div>
+                <h3>Another example</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/campanile_1_small.png' width = 500>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/campanile_2_small.png' width = 500>
+                    </div>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './output/campanile_correspondences.png' width = 1000>
+                </div>
+                <p>Computing the homography using least squares gets us this:</p>
+                <div>
+                    \[\begin{pmatrix} 1.6416 & -0.1798 & -340.9934 \\ 
+                    0.4009 & 1.3391 & -162.7263 \\
+                    0.001 & -0.0002 & 1
+                    \end{pmatrix}\]
+                    
+                </div>
+                <h2>Warping the Images</h2>
+                <p>Now that we've solved for the H matrix, we can apply this to every pixel in image 1 (making sure to divide out w at the end). 
+                    However, with forward mapping, multiple points may land on the same destination pixel.
+                    Instead, we'll do inverse mapping. In inverse mapping, we'll pipe our the four corners of our image through our H matrix to 
+                    create the canvas. Then for every pixel in our canvas, we'll take the inverse of our H matrix, and send it back into our original image.
+                    Then we can interpolate the value of the pixel in our canvas by either using nearest neighbors (assigning the value of the pixel in our canvas to the 
+                    value of the pixel closest to it in the original image) or linear interpolation, which is a weighted combination of the four surrounding pixels. 
+                    Its important that when sending values back, that we make sure to shift it back to the piped corners—an images origin lies at (0,0) but applying our H matrix, the origin may land at 
+                    (-10, -25)
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_NN.jpg' width = 500>
+                        <p>nearest neighbor interpolation</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_bilinear.jpg' width = 500>
+                        <p>bilinear interpolation</p>
+                    </div>
+                </div>
+                <h3>Another example</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/warped_campanile_NN.jpg' width = 500>
+                        <p>nearest neighbor interpolation</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/warped_campanile_bilinear.jpg' width = 500>
+                        <p>bilinear interpolation</p>
+                    </div>
+                </div>
+                <p>zooming in you can notice that bilinear doesn't have as many weird artifacts. These are especially obvious on the borders of our image.</p>
+                <h2>Rectification</h2>
+                <p>The nice thing about rectification is that for a flat surface, the center of projection actually doesn't matter. </p>
+                <div class= 'image-item'>
+                    <img src = './output/poster_correspondences.png' width = 750>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/poster_NN.jpg' width = '300'>
+                        <p>nearest neighbor</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/poster_bilinear.jpg' width = '300'>
+                        <p>bilinear interpolation</p>
+                    </div>
+                    
+                </div>
+                <p>Here is another example between the tradeoffs of nearest-neighbors and bilinear interpolation.
+                    The left image looks like it retains more specifics while the bilinear interpolation looks smudged.
+                </p>    
+                <h3>Another example</h3>
+                <div class ='image-item'>
+                    <img src = './output/discussion_correspondences.png' width = '1000'>  
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/NN_discussion.jpg' width = '500'>
+                        <p>nearest neighbors</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/bilinear_discussion.jpg' width = '500'>
+                        <p>bilinear</p>
+                    </div>
+                </div>
+                
+
+            
+                <h2>Panoramic Stitching</h2>
+                <p>Lets go back to the original images of the house. Here they are on a canvas that fits them</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/canvas_1_living_room.jpg' width = '500'>
+                        <p>bilinear interpolation</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/canvas_2_living_room.jpg' width = '500'>
+                    </div>
+                </div>
+                <p>If we simply lay them over eachother, we can get ok results:</p>
+                <div class = 'image-item'>
+                    <img src = './output/living_room_without_blending.jpg' width = '700'>
+                </div>
+                <p>The two caveats about this is the order in which we lay them on top of eachother matters and it doesn't look very good.
+                    Instead, we'll try to create a binary mask and run a laplacian pyramid over it, like in project 3, in order to morph them together. 
+                    If we color the distance for our images to the black background, and binarize a mask, we'll wind up with this:  
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_dmap1.jpg' width = '300'>
+                        <p>Distance Map 1, DMAP_1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_dmap2.jpg' width = '300'>
+                        <p>Distance Map 2, DMAP_2</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/mask_living_room.jpg' width = '300'>
+                        <p>Binarized DMAP_1 > DMAP_2</p>
+                    </div>
+                </div>
+                <p>Running our laplacian stack with 7 layers and merging we get a morphed image. Here is a side-by-side comparison</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_without_blending.jpg' width = '500'>
+                        <p>without blending</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_blended.jpg' width = '500'>
+                        <p>with blending</p>
+                    </div>
+                </div>
+                <h3>Another example</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/campanile_mosaic_1.jpg' width = '500'>
+
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/campanile_mosaic_2.jpg' width = '500'>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/unblended_campanile.jpg' width = '500'>
+                        <p>without blending</p> 
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/blended_campanile.jpg' width = '500'>
+                        <p>with blending</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+</body>
+
+
+</html>
