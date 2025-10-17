@@ -379,7 +379,7 @@
                     but if you had another image and it didn't contain that highly distinct area, the number of correspondences 
                     between those two images might be very small. 
                 </p>
-                <h3>ANMS</h3>
+                <h3>Adaptive Non-Maximal Suppression (ANMS)</h3>
                 <p>This is where ANMS comes in. The idea here is that 
                     from each corner, say \( x_i \), we want to look at all the corners that still have a significantly stronger
                     harris corner detection value, point \(x_j\). For each of those \(x_j\)'s that we kept, we will calculate the distance from \(x_i\) to each \(x_j\), find the smallest distance, and assign that distance value to \(r_i\). 
