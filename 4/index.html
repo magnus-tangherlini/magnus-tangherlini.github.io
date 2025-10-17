@@ -189,11 +189,11 @@
                 <h2 id = '1-3'>Warping the Images</h2>
                 <p>Now that we've solved for the H matrix, we can apply this to every pixel in image 1 (making sure to divide out w at the end). 
                     However, with forward mapping, multiple points may land on the same destination pixel.
-                    Instead, we'll do inverse mapping. In inverse mapping, we'll pipe our the four corners of our image through our H matrix to 
+                    Instead, we'll do inverse mapping. In inverse mapping, we'll pipe the four corners of our image through our H matrix to 
                     create the canvas. Then for every pixel in our canvas, we'll take the inverse of our H matrix, and send it back into our original image.
                     Then we can interpolate the value of the pixel in our canvas by either using nearest neighbors (assigning the value of the pixel in our canvas to the 
                     value of the pixel closest to it in the original image) or linear interpolation, which is a weighted combination of the four surrounding pixels. 
-                    Its important that when sending values back, that we make sure to shift it back to the piped corners—an images origin lies at (0,0) but applying our H matrix, the origin may land at 
+                    It is important that, when sending values back, we make sure to shift it back to the piped corners—an image's origin lies at (0,0) but applying our H matrix, the origin may land at 
                     (-10, -25)
                 </p>
                 <div class = 'image-row'>
@@ -270,7 +270,7 @@
                 <div class = 'image-item'>
                     <img src = './output/living_room_without_blending.jpg' width = '700'>
                 </div>
-                <p>The two caveats about this is the order in which we lay them on top of eachother matters and it doesn't look very good.
+                <p>The two caveats about this is the order in which we lay them on top of each other matters and it doesn't look very good.
                     Instead, we'll try to create a binary mask and run a laplacian pyramid over it, like in project 3, in order to morph them together. 
                     If we color the distance for our images to the black background, and binarize a mask, we'll wind up with this:  
                 </p>
@@ -347,7 +347,13 @@
                 <h2 id = '2-1'>Corner Detection and ANMS</h2>
                 <p>The idea behind corner detection is that a corner exists if there are changes in intensity in both the x and y direction. 
                     We'll first calculate the gradients in the x, and y direction. Then we can grab a small patch over a pixel in the gradient images. We can then compute M which is defined as 
-                    [INSERT M HERE]. The Harris corner value at that pixel will be often the determinant/trace, since large values will be associated with large eigenvalues and small values will be associated with small eigenvalues.
+                    \[M=\begin{pmatrix}
+                    \sum I_x^2 & \sum I_xI_y \\
+                    \sum I_xI_y & \sum I_y^2
+                    \end{pmatrix}\]
+                    Where \(I_x\) and \(I_y\) are the gradient matrices for that patch of pixels and \(I_xI_y\) is just the pairwise products between the two matrices. The Harris corner value at that pixel will be often be 
+                    \[Corner= \frac{detM}{traceM}\] 
+                    since large values will be associated with large eigenvalues (i.e large changes in both X and Y) and small values will be associated with small eigenvalues.
                 </p>
                 <div class='image-item'>
                     <img src = './output/part2/wurster_1_gray.jpg'>
