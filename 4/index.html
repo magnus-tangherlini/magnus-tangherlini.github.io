@@ -13,9 +13,15 @@
         <nav class="sidebar">
             <ul>
                 <li><a href="#1-1">1.1 The Photos</a></li>
-                <li><a href="#1-2">1.2 Recovering Homographies</a></li>
-                <li><a href="#1-3">1.3 Warping the Image</a></li>
-                <li><a href="#1-4">1.4 Creating Image Mosaics</a></li>
+                <li><a href="#1-2">1.2 Recovering the Homography</a></li>
+                <li><a href="#1-3">1.3 Warping the Images</a></li>
+                <li><a href="#1-4">1.4 Rectification</a></li>
+                <li><a href="#1-5">1.5 Panoramic Stitching</a></li>
+                <li><a href="#2-1">2.1 Corner Detection and ANMS</a></li>
+                <li><a href="#2-2">2.2 Feature Descriptors</a></li>
+                <li><a href="#2-3">2.3 Feature Matching</a></li>
+                <li><a href="#2-4">2.4 RANSAC</a></li>
+                
                 <!-- Add more projects as needed -->
             </ul>
         </nav>
@@ -40,11 +46,57 @@
 
             <div class = 'project-details'>
                 <h1>Part 1: Homographies and Mosaics</h1>
-                <h2 id = '#1-1'>Example Images</h2>
+                <h2 id = '1-1'>Example Images</h2>
                 <p>Here are examples of pairs of images that have the same center of projection but slight rotations. This documents the change in perspective.</p>
-
-                <h2 id ='#1-2'>Recovering the Homography</h2>
-                <p>The main idea behind a homography is that we can [insert explanation here]</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/living_room1.png' width = 500>
+                        <p>image 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/living_room2.png' width =500>
+                        <p>image 2</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/campanile_1.png' width = 500>
+                        <p>image 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/campanile_2.png' width = 500>
+                        <p>image 2</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/wurster_1.png' width = 300>
+                        <p>image 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/wurster_2.png' width = 300>
+                        <p>image 2</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './data/part1/wurster_3.png' width = 300>
+                        <p>image 3</p>
+                    </div>
+                </div>
+                <p>For this last set of 3 images, I purposefully wanted to get not just a horizontal perspective change, but a vertical perspective change
+                    with respect to image 2.
+                </p>
+                <p>For consistency in the project, I will almost always be warping everything to image_2.</p>
+                
+                
+                
+                <h2 id ='1-2'>Recovering the Homography</h2>
+                <p>The main idea behind a homography is that what we're looking at when we look at an image
+                    is actually pixels on an x, y, z plane, where the z plane is at a distance of 1 from us. A homography is a matrix that 
+                    will tilt, rotate, and translate that plane. We then project those pixels back onto the z=1 plane, through the origin.
+                    So after the homography, if a pixel is at a large z, projecting it back onto the z=1 plane, that pixel should "appear" smaller to us, (ie closer to the origin). What we're
+                    doing is a change of basis and then a shift back into the normal image axes. This is why we use \(w\) as a "scaling constant". \(x'\) and \(y'\) are in terms of being on the 
+                    z=1 plane.
+                </p>
                 <div>
                     \[ \begin{pmatrix} wx' \\ wy' \\ w \end{pmatrix} = 
                     \begin{pmatrix}
@@ -134,7 +186,7 @@
                     \end{pmatrix}\]
                     
                 </div>
-                <h2>Warping the Images</h2>
+                <h2 id = '1-3'>Warping the Images</h2>
                 <p>Now that we've solved for the H matrix, we can apply this to every pixel in image 1 (making sure to divide out w at the end). 
                     However, with forward mapping, multiple points may land on the same destination pixel.
                     Instead, we'll do inverse mapping. In inverse mapping, we'll pipe our the four corners of our image through our H matrix to 
@@ -166,8 +218,10 @@
                     </div>
                 </div>
                 <p>zooming in you can notice that bilinear doesn't have as many weird artifacts. These are especially obvious on the borders of our image.</p>
-                <h2>Rectification</h2>
-                <p>The nice thing about rectification is that for a flat surface, the center of projection actually doesn't matter. </p>
+                <h2 id = '1-4'>Rectification</h2>
+                <p>The nice thing about rectification is that for a flat surface, the center of projection actually doesn't matter. Because we're assuming the object is a plane,
+                    where we stand in relation to the plane is simply a homography of that plane. This leads us to the ability to rectify flat images.
+                </p>
                 <div class= 'image-item'>
                     <img src = './output/poster_correspondences.png' width = 750>
                 </div>
@@ -202,12 +256,11 @@
                 
 
             
-                <h2>Panoramic Stitching</h2>
+                <h2 id = '1-5'>Panoramic Stitching</h2>
                 <p>Lets go back to the original images of the house. Here they are on a canvas that fits them</p>
                 <div class = 'image-row'>
                     <div class = 'image-item'>
                         <img src = './output/canvas_1_living_room.jpg' width = '500'>
-                        <p>bilinear interpolation</p>
                     </div>
                     <div class = 'image-item'>
                         <img src = './output/canvas_2_living_room.jpg' width = '500'>
@@ -266,6 +319,257 @@
                         <p>with blending</p>
                     </div>
                 </div>
+                <p>We can also do this with 3 photos, no-matter the rotation!</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_1_hand_mosaic.jpg' width = '500'>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_2_hand_mosaic.jpg' width = '500'>
+                    </div>
+                </div>
+                <div class ='image-item'>
+                    <img src = './output/part2/wurster_1_by_hand.jpg' width = '700'>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_3_mosaic_hand.jpg' width = '500'>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_4_mosaic_hand.jpg' width = '500'>
+                    </div>
+                </div>
+                <div class ='image-item'>
+                    <img src = './output/part2/wurster_total_hand_mosaic.jpg' width = '700'>
+                </div>
+    
+                <h1>Part 2: Automatic Alignment</h1>
+                <h2 id = '2-1'>Corner Detection and ANMS</h2>
+                <p>The idea behind corner detection is that a corner exists if there are changes in intensity in both the x and y direction. 
+                    We'll first calculate the gradients in the x, and y direction. Then we can grab a small patch over a pixel in the gradient images. We can then compute M which is defined as 
+                    [INSERT M HERE]. The Harris corner value at that pixel will be often the determinant/trace, since large values will be associated with large eigenvalues and small values will be associated with small eigenvalues.
+                </p>
+                <div class='image-item'>
+                    <img src = './output/part2/wurster_1_gray.jpg'>
+                </div>
+                <p>This is what the harris corner values reveals about the image</p>
+                <div class ='image-item'>
+                    <img src = './output/part2/wurster_1_harris_vals.jpg'>
+                </div>
+                <p>And grabbing the top points:</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_1_500.png' width = '500'>
+                        <p>top 500 points</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_1_250.png' width = '500'>
+                        <p>top 250 points</p>
+                    </div>
+                </div>
+                <p>Even though corners are exactly what we're looking for, 
+                    simply selecting the top corners is not very robust. From the images 
+                    alone you can see that points will cluster towards highly distinct areas, 
+                    but if you had another image and it didn't contain that highly distinct area, the number of correspondences 
+                    between those two images might be very small. 
+                </p>
+                <h3>ANMS</h3>
+                <p>This is where ANMS comes in. The idea here is that 
+                    from each corner, say \( x_i \), we want to look at all the corners that still have a significantly stronger
+                    harris corner detection value, point \(x_j\). For each of those \(x_j\)'s that we kept, we will calculate the distance from \(x_i\) to each \(x_j\), find the smallest distance, and assign that distance value to \(r_i\). 
+                    We'll then sort and grab the top \(r_i\)'s. We can formulate each \(r_i\) into this equation:
+                    $$r_i =\underset{\text{j}}{min} \lVert x_i - x_j \rVert_2 \: \textrm{ s.t.} f(x_i) < c * f(x_j)$$
+                    It's important to note that this actually leaves out the maximum corner value since the inequality will always be untrue. However, we can change this 
+                    by manually placing it in. This gives us a much more robust version of the top harris corners.
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_1_ANMS_500.png' width = 500>
+                        <p>500 points, \(c\) = 0.9</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_1_ANMS_250.png' width = 500>
+                        <p>250 points, \(c\) = 0.9</p>
+                    </div>
+                </div>
+                <p>Another way to think about this is that from each point, we only consider "stronger" points. If there's a point that doesn't have a very
+                    strong harris corner value but is very far away from any other stronger point, we want to give that point more importance than a point that is close to a very strong point. 
+                    Unfortunately, the get_harris_corners function actually may give us points that are associated with extremely small values (ie points in the sky may have a value of 1e-5), allowing for large \(r_i\)'s for "non-existent" corners. In my implementation,
+                    I assigned points under a threshold of 1e-4 an \(r_i\) of 0.  
+                </p>
+                <h2 id = '2-2'>Feature Descriptors</h2>
+                <p>Even though that we have edges, we don't have enough information to figure out 
+                    how to match them between two images. This is where a feature descriptor comes in. The idea behind a feature descriptor is 
+                    that we'll take some small window around the pixel, and attach that to the corner. In order to get robust features, we'll first blur the image,
+                    grab a 40x40 patch, and downsample it to 8x8, and normalize it to have mean 0 and variance 1.
+                </p>
+
+                <div class = 'image-row'>
+                    <div class ='image-item'>
+                        <p>patch 1</p>
+                        <img src = './output/part2/features/patch_0_big.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>40x40</p>
+                    </div>
+                    <div class ='image-item'>
+                        <p>patch 2</p>
+                        <img src = './output/part2/features/patch_1_big.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>40x40</p>
+                    </div>
+                    <div class ='image-item'>
+                        <p>patch 3</p>
+                        <img src = './output/part2/features/patch_2_big.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>40x40</p>
+                    </div>
+                    <div class ='image-item'>
+                        <p>patch 4</p>
+                        <img src = './output/part2/features/patch_3_big.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>40x40</p>
+                    </div>
+                    <div class ='image-item'>
+                        <p>patch 5</p>
+                        <img src = './output/part2/features/patch_4_big.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>40x40</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class ='image-item'>
+                        <img src = './output/part2/features/patch_0_small.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>8x8</p>
+                    </div>
+                    <div class ='image-item'>
+                        <img src = './output/part2/features/patch_1_small.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>8x8</p>
+                    </div>
+                    <div class ='image-item'>
+                        <img src = './output/part2/features/patch_2_small.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>8x8</p>
+                    </div>
+                    <div class ='image-item'>
+                        <img src = './output/part2/features/patch_3_small.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>8x8</p>
+                    </div>
+                    <div class ='image-item'>
+                        <img src = './output/part2/features/patch_4_small.jpg' width = 150 style="image-rendering: pixelated;">
+                        <p>8x8</p>
+                    </div>
+                </div>
+                
+                <h2 id = '2-3'>Feature Matching</h2>
+                <p>Now that we have a list of descriptors for each corner, for each image, we'll now attempt to match similiar looking corners up between the images.
+                    To do this, we'll run a naive algorithm, calculating the euclidean distance \(e_i\) between every patch in image 1, \(p_i\), to every patch in image 2, \(p_j\). 
+                    We'll keep patches (\(p_i, p_j\)) if the next closest match (\(p_i, p_k\)) is significantly larger. In terms of an equation, we can formulate it into:
+                    $$ e_1/e_2 < c $$ where \(e_1\) is the error associated with the smallest distance and \(e_2\) is associated with the second smallest distance. 
+                    From the paper, it is seen that a cutoff of 0.6 works quite well. However, here is an example of using a larger cutoff. You can see there are correspondences that shouldn't be correspondences.
+                    
+                </p>
+                <div class = 'image-item'>
+                    <img src = './output/part2/feature_matching.png' >
+                    <p>\(c = 0.6\)</p>
+                </div>
+                    
+
+                <div class = 'image-item'>
+                        <img src = './output/part2/feature_matching_bad.png' >
+                        <p>\(c = 0.9\)</p>
+                    </div>
+                <p>With this in mind, we can find the best matches between the two images!</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src= './output/part2/living_room_1.png' width = 500>
+                        <p>ANMS corners, top 250</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src= './output/part2/living_room_2.png' width = 500>
+                        <p>ANMS corners, top 250</p>
+                    </div>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './output/part2/living_room_correspondences.png'>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src= './output/part2/campanile_1.png' width = 500>
+                        <p>ANMS corners, top 250</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src= './output/part2/campanile_2.png' width = 500>
+                        <p>ANMS corners, top 250</p>
+                    </div>
+                </div>
+                <div class = 'image-item'>
+                        <img src= './output/part2/campanile_correspondences.png'>
+                </div>
+                <p>Its a bit crazy how good the feature mapping is</p>
+                <h2 id = '2-4'>RANSAC</h2>
+                <p>Now that we have our correspondences, there's a possiblity that we'll have 
+                    corresponding corners that shouldn't be correspondences. To avoid this, we'll run an algorithm called RANSAC. The algorithm for RANSAC as is follows
+                </p>
+                <div>
+                    <pre>
+                        <code>
+                            def RANSAC((im1, im2 correspondences), error, iterations)
+                                Repeat iterations times:
+                                    1. sample 4 random points from the correspondences 
+                                    2. compute the homography, H
+                                    3. For every original point in the pre-warped image correspondences, warp them using H (im1')
+                                    
+                                    
+                                    4. calculate the new distance between all warped points (im1') and the correspondence point (im2).
+                                    5. Count the number of inliers (the number of points where the distance is less than the error)
+                                    and remember those points.
+                                
+
+                                6. Get the inliers associated with H that correspond to the most amount of inliers
+                                7. Recaculate H using least squares, using the inliers
+                              
+                        </code>
+                    </pre>
+                </div>
+                <p>after running this code on our initial image, we can find our new warped output and create the mosaic</p>
+
+                    
+                <div class = 'image-item'>
+                    <img src = './output/part2/blended_wurster_1.jpg' width = 700>
+                    auto
+                </div>
+
+                <p>and with that here are all the before and after blended images. </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/wurster_total_hand_mosaic.jpg' width = 500>
+                        <p>by hand</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/large_pano_auto.jpg' width =500>
+                        <p>auto</p>
+                    </div>
+                </div>
+                <p>Pay attention to the top left corner and look at the warping going on there. The automatic stitching does 
+                    a better job of getting the angle to look correct.
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/living_room_blended.jpg' width = '500'>
+                        <p>hand correspondences</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/living_room_auto.jpg' width = '500'>
+                        <p>auto</p>
+                    </div>
+                </div>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './output/blended_campanile.jpg' width = '500'>
+                        <p>hand correspondences</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './output/part2/campanile_auto.jpg' width = '500'>
+                        <p>hand correspondences</p>
+                    </div>
+                </div>
+                <p>Its also interesting looking at the different sizes in the canvas. The auto stitching seems to do a better 
+                    job at retaining scale when warping.
+                </p>
             </div>
         </main>
 
