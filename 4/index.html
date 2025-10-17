@@ -92,7 +92,7 @@
                 <h2 id ='1-2'>Recovering the Homography</h2>
                 <p>The main idea behind a homography is that what we're looking at when we look at an image
                     is actually pixels on an x, y, z plane, where the z plane is at a distance of 1 from us. A homography is a matrix that 
-                    will tilt, rotate, and translate that plane. We then project those pixels back onto the z=1 plane, through the origin.
+                    will tilt, shear, rotate, and translate that plane. We then project those pixels back onto the z=1 plane, through the origin.
                     So after the homography, if a pixel is at a large z, projecting it back onto the z=1 plane, that pixel should "appear" smaller to us, (ie closer to the origin). What we're
                     doing is a change of basis and then a shift back into the normal image axes. This is why we use \(w\) as a "scaling constant". \(x'\) and \(y'\) are in terms of being on the 
                     z=1 plane.
