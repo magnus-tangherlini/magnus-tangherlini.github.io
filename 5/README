@@ -1,0 +1,11 @@
+The following code is quite confusing but the two main important files are the code.ipynb and the nerf.ipynb
+
+code.ipynb was used for parts 0 and 1. Part 0 it was used for pre-processing the images, calibrating the camera, and creating the dataset.
+There might be quite redundant code, especially when it comes to having to save the downsampled images. However, I was too lazy to actually go 
+back and change the workflow.
+
+nerf.ipynb was used to actually train the model. The most important thing to do when changing hyperparameters is to change near and far
+in the function sample_along_rays. I accidentally hardcoded in values, but all you need to do is change the default values and it should be fine.
+
+Most of the files are not completely used here, however I'm not totally sure which ones are. In the future I will do a better job of keeping track.
+For now, just look at the website in order to understand the code.
