@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Test Page</title>
+  <link rel="stylesheet" href="../style.css"> <!-- your stylesheet -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <ul>
+                <li><a href="#0">0. Camera Calibration and Capturing a 3D scan</a></li>
+                <li><a href="#1">1. Neural Field to 2D image</a></li>
+                <li><a href="#2-1">2.1 Corner Detection and ANMS</a></li>
+                <li><a href="#2-2">2.2 Feature Descriptors</a></li>
+                <li><a href="#2-3">2.3 Feature Matching</a></li>
+                <li><a href="#2-4">2.4 RANSAC</a></li>
+                <li><a href="#2-5">2.4 RANSAC</a></li>
+                <li><a href="#2-6">2.4 RANSAC</a></li>
+                
+                <!-- Add more projects as needed -->
+            </ul>
+        </nav>
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> > 
+                <span class="current">Project 5</span>
+            </nav>
+
+            <section class="header">
+                <h1>Nerf!</h1>
+                <div class="header-meta">
+                    <p class="authorship">Author: Magnus Tangherlini</p>
+                    <p class="date">Nov 7th 2025</p>
+                </div>
+            
+            </section>
+            <div class="project-description">
+                <h1>Project Overview</h1>
+                <p>Reconstructing 3D from 2D images using NeRF</p>
+            </div>
+            <div class = 'project-details'>
+                <h1>Part 0: Figuring out image to world coordinates</h1>
+                <h2>Understanding Coordinate Systems</h2>
+                <p>The idea behind this 0th part is that we'll need to calculate the intrinsics of our camera.
+                    The intrinsic of a pinhole camera are the focal lengths in the x and y direction, as well as where the pinhole camera is centered in pixel coordinates on the 
+                    image (ideally the center of the image). We can do this by collecting a bunch of images that have an overlapping feature, the Aruco tag, and matching up where the Aruco tag is in world space and where 
+                    it is in the pixel space. We'll then throw it into a function that automatically solves for the intrinsics of our camera.
+                    
+                </p>
+                <p>
+                    We'll now need to solve for the cameras pose in "world space". Because we have a collection of images that all contain an aruco tag, we can center the world origin around the top left corner of this aruco tag. 
+                    This overlapping feature allows for epi-polar geometry and an estimation of depth from the feature we are taking an image of (the Aruco tag). Plugging in these points from the image to the function solvePnP()
+                    solves for both a rotation and translation matrix, to move from the world coordinate system to the pinhole camera coordinate system. 
+                    However this PnP function solves the world-to-camera matrix, rather than the camera-to-world matrix. We can get around this by simply taking the inverse of the 
+                    matrix. 
+                </p>
+                <p>After getting the c2w matrix (camera-to-world) for each image, and knowing the camera intrinsics, we can apply that directly on each image to create a 3d frestum of the object we are taking a photo of.</p>
+
+                <div class = 'image-item'>
+                    <img src = './sf_orbit_1.png' width = '800'>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './sf_orbit_2.png' width = '800'>
+                </div>
+
+                <h1>Part 1: Training small Neural Field on 2D Image</h1>
+                <p>For this part, we'll try to train a NN to predict colors simply on pixel coordinate values.
+                    While this seems a bit ridiculous, given that we'll be overtraining on one image, this is exactly what we need for NeRF, since NeRF is trained directly
+                    on the image set specifically for that scene. 
+                </p>
+                <p>However, this problem can be quite tricky. Even though we want to overtrain on one image, we want to get 
+                    high-frequency components which are hard to capture simply using a linear network. The network will have a hard time 
+                    predicting different colors between extremely close points. We can avoid this problem by increasing the dimensionality 
+                    of the pixel coordinates using sinusoidal positional encoding. This means extremely close points in pixel coordinates may be easier to discern in the fourier
+                    space. 
+                </p>
+                <p>Here is the sinusoidal positional encoding we will be doing:</p>
+                <p>\[PE(x) = \{x, sin(2^0\pi x), cos(2^0\pi x), sin(2^1\pi x), cos(2^1\pi x), ..., sin(2^{L-1}\pi x), cos(2^{L-1}\pi x)\}\]</p>
+                <p>We'll use this image for training</p>
+                <div class = 'image-item'>
+                    <img src = './foxy_boi.jpg' width = 800>
+                </div>
+                <h2>The MLP</h2>
+                <div class = 'image-item'>
+                    <img src = './mlp_img.jpg' width = 600>
+                    <p>source: cs180 project spec</p>
+                </div>
+                <p>The model is four layers deep with the first three layers having an output dimension size of 256 and the last layer having an output dimension size of 3.
+                    This output will predict the rgb for the pixel inputted. We can backprop based on the mean squared error between the predicted color at that point and the actual color. 
+
+                </p>
+                <p>Hyperparameters:</p>
+                <p>num_epochs = 1000</p>
+                <p>batchSize = 10000</p>
+                <p>L = 10 (positional encoding layers)</p>
+                <p>Adam gradient descent with lr = 0.001</p>
+                <p>PSNR is a great way of measuring how well our model is predicting the color. Its defined as:</p>
+                <p>\[PSNR = 10 \cdot log_{10}\left(\frac{1}{MSE}\right)\]</p>
+                <p>Here is what the PSNR looks like after training</p>
+                <div class = 'image-item'>
+                    <img src = './fox_outputs/train_psnr.png' width = 800>
+                </div>
+                <p>We can also visualize what our model is doing over time</p>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_0.png' width = 300>
+                        <p>epoch 0</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_100.png' width = 300>
+                        <p>epoch 100</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_200.png' width = 300>
+                        <p>epoch 200</p>
+                    </div>
+                </div>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_300.png' width = 300>
+                        <p>epoch 500</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_700.png' width = 300>
+                        <p>epoch 700</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './fox_outputs/fox_training/fox_train_epoch_800.png' width = 300>
+                        <p>epoch 800</p>
+                    </div>
+                    
+                </div>
+                <div class = 'image-item'>
+                    <img src = './fox_outputs/fox_training/fox_train_epoch_1000.png' width = 800>
+                    <p>epoch 1000</p>
+                </div>
+                <p>We can also visualize what our fox looks like for our different hyperparameters, keeping batchsize and epoch length the same.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Layer = 16</th>
+                            <th>Layer = 128</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>PE = 3</th>
+
+                            <td><img src="./fox_outputs/weird_outputs/3PE_16layers.png" width = '400' alt="PE=3, Layer=16"></td>
+                            <td><img src="./fox_outputs/weird_outputs/3PE_128layers.png" width = '400' alt="PE=3, Layer=128"></td>
+                        </tr>
+                        <tr>
+                            <th>PE = 10</th>
+                            <td><img src="./fox_outputs/weird_outputs/10PE_16layers.png" width = '400' alt="PE=10, Layer=16"></td>
+                            <td><img src="./fox_outputs/weird_outputs/10PE_128layers.png" width = '400' alt="PE=10, Layer=128"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>Its interesting to see that the change in positional encoding allows for higher frequencies (more details)
+                    in the image, while deeper layers highlights the main contours of the fox (lower frequencies).
+                </p>
+                <h2>Personal Image</h2>
+                <p>For the second part of this project, I'll be working with a lego set of SF. Here is the Neural Field captured on one image from 
+                    the dataset.
+                </p>
+                <div class = 'image-item'>
+                    <img src = './personal_NF/small_img.JPG' width = 400>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './personal_NF/train_psnr.png'>
+                </div>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_100.png' width = 300>
+                        <p>epoch 100</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_200.png' width = 300>
+                        <p>epoch 200</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_300.png' width = 300>
+                        <p>epoch 300</p>
+                    </div>
+                </div>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_400.png' width = 300>
+                        <p>epoch 400</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_600.png' width = 300>
+                        <p>epoch 600</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_800.png' width = 300>
+                        <p>epoch 800</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/small_img.JPG' width = 400>
+                        <p>ground truth</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './personal_NF/renderings/sf_final.png' width = 400>
+                        <p>epoch 1000</p>
+                    </div>
+                </div>
+                
+                
+
+                <h1>Part 2: NeRF</h1>
+
+                <h2>2.1 Rays from Cameras</h2>
+                <p>The main idea behind nerf is that we'll shoot rays out from each pinhole camera, sample points along the ray, and take the expectation of those predicted colors with respect to density. But we first need to figure out how to shoot out rays from our camera.</p>
+                <p>We'll start off simple, moving something from the camera space to the world space, by simply multiplying our c2w by a camera coordinate. It's important to note that our c2w matrix is actually 4x4, since translations are non-linear in 3d space. 
+                    Therefore, we'll need to append a 1 to the point in camera coordinates in order for dimensions to work out.</p>
+                <p>\[\begin{align} \begin{bmatrix} x_w \\ y_w \\ z_w \\ 1 \end{bmatrix} = \begin{bmatrix}
+    \mathbf{R}_{3\times3} &
+    \mathbf{t} \\ \mathbf{0}_{1\times3} & 1 \end{bmatrix} \begin{bmatrix} x_c \\ y_c \\ z_c \\ 1 \end{bmatrix}
+    \end{align}\]</p>
+                <p>The next part we need to do is move from pixel space to camera space. Multiplying our intrinsics matrix by camera coordinates moves us directly into scaled pixel space (assuming a pinhole camera, the optical-axis from the object will scale to where it is on our image).
+                    To move from pixel to camera coordinates, we can simply multiply both sides by the inverse of our intrinsics matrix. 
+                </p>
+                <p>
+                    \[\begin{align}
+    \mathbf{K} = \begin{bmatrix} f_x & 0 & o_x \\ 0 & f_y & o_y \\ 0 & 0 & 1 \end{bmatrix} \end{align}\]
+                </p>
+                <p>
+                    \begin{align} s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = \mathbf{K} \begin{bmatrix} x_c \\ y_c \\ z_c
+    \end{bmatrix} \end{align}
+    \begin{align} \mathbf{K^{-1}} s \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = \begin{bmatrix} x_c \\ y_c \\ z_c
+    \end{bmatrix} \end{align}
+                </p>
+                <p>Each c2w matrix has a translation component that maps from the origin to the pinhole camera in world-coordinates. 
+                    We'll use this vector as the origin for the ray. Then we'll sample a point from our image, in pixel space, move it to camera coordinates assuming s = 1 (the ray is of length 1), and finally move it to world coordinates using the above transformations.
+                    With that new world point, we can get the direction of this vector by subtracting the origin of the ray from this new direction, and finally 
+                    normalizing it to allow for easier scaling in the future.
+                </p>
+                <p>
+                    \[\mathbf{r_o} = \mathbf{t}\]
+    
+                </p>
+                <p> \[\begin{align} \mathbf{K^{-1}} 1 \begin{bmatrix} u \\ v \\ 1 \end{bmatrix} = \begin{bmatrix} x_c \\ y_c \\ z_c
+                    \end{bmatrix} \end{align} \]</p>
+                <p>\[\begin{align} \begin{bmatrix} x_w \\ y_w \\ z_w \\ 1 \end{bmatrix} = \begin{bmatrix}
+    \mathbf{R}_{3\times3} &
+    \mathbf{t} \\ \mathbf{0}_{1\times3} & 1 \end{bmatrix} \begin{bmatrix} x_c \\ y_c \\ z_c \\ 1 \end{bmatrix}
+    \end{align}\]</p>
+                <p>\begin{align} \mathbf{r}_d = \frac{\begin{bmatrix} x_w \\ y_w \\ z_w \end{bmatrix} -
+    \mathbf{r}_o}{||\begin{bmatrix} x_w \\ y_w \\ z_w \end{bmatrix} -
+    \mathbf{r}_o||_2} \end{align}</p>
+                <p>With this, we can now visualize a ray since we have its origin and direction.</p>
+                <h2>Sampling</h2>
+                <p>Now that we have this ray in world coordinates, points along this ray are simply given by 
+                    \(\mathbf{x} = \mathbf{R}_o + \mathbf{R}_d * t\). We can now create a line for t, starting at where 
+                we want to start sampling our points on this ray, in world coordinates, and where we want to stop sampling, and chop it into \(\mathbf{N}\) even segments. We'll then 
+                add small perturbations along each segment of t, by sampling a random number between 0 and 1, multiplying it by how large each segment of t is and adding that to each segment of t. 
+            The width of each segment of t is given by \[\mathbf{width} = \frac{\mathbf{far} - \mathbf{near}}{\mathbf{N}}\]</p>
+            <p>where \(\mathbf{N}\) is the number of samples along the Ray.</p>
+                
+                <div class = 'image-item'>
+                    <p>Sampling a total of 100 rays from training images:</p>
+                    <img src = './lego_rays.png' width = 1000>
+                    
+                </div>
+                <div class = 'image-item'>
+                    <p>And here is what 100 rays looks like from one image:</p>
+                    <img src = './lego_100_rays.png' width = 1000>
+                    
+                </div>
+
+                
+                <h2>Data Loader</h2>
+                <p>The data loader I created takes in an image dataset, a c2w dataset, the intrinsics matrix, and an index to create a meshgrid for.
+                    The function sampleRays(N) samples M images (which I chose to be the length of the dataset), and N//M total rays. The output from sample rays is of dimension of 
+                    (\(\mathbf{M} * \mathbf{N}//\mathbf{M}, 3\)) of ray origins, ray directions, and ground truth colors from the pixel coordinates sampled.
+                    Later (not within the function), for each of those ray origins and ray directions, we'll sample 64 points, which will have output dimensionality
+                    (\(\mathbf{M} * \mathbf{N}//\mathbf{M}, 64, 3\))
+                </p>
+                
+                <h2>NeRF Model Architecture</h2>
+                <div class = 'image-item'>
+                    <img src = './nerf_model.png' width = 800>
+                </div>
+                <p>NeRF is quite a large model so the specifics are shown here. We concatenate our input ocassionally in order to prevent
+                    vanishing gradients when moving through our large network. The important things is to positionally encode
+                    the sampled points (depth = 10), as well as each ray direction (depth = 4). The outputs for each sampled point will be a color as well as a density.
+
+                </p>
+                
+                <h2>Volumetric Rendering</h2>
+                <p>Volumetric Rendering will be the part where we figure out the predicted color from points sampled along a ray, and allow
+                    us to compute the loss from the ground truth. This is the equation that I will walk through.
+                </p>
+
+                <p>\begin{align}
+    \hat{C}(\mathbf{r})=\sum_{i=1}^N T_i\left(1-\exp \left(-\sigma_i \delta_i\right)\right) \mathbf{c}_i, \text { where
+    } T_i=\exp
+    \left(-\sum_{j=1}^{i-1} \sigma_j \delta_j\right) \end{align}</p>
+                <p>\begin{align}\sigma_i = \text{density of point }i \end{align}
+                    \begin{align}\mathbf{c}_i = \text{predicted color of point }i \end{align}
+                    \begin{align}\delta = \text{step size between sampled points} \end{align}
+                </p>
+                <p>\(T_i\) can be thought of how much light reaches us. 
+                    For example, if the points before point \(i\) are very dense, then \(T_i\) will be very small so almost no light will reach us and thus
+                    we shouldn't be able to see that point as well. This equation \(\left(1-\exp \left(-\sigma_i \delta_i\right)\right)\) captures the opacity of point 
+                    \(i\). If the point is very dense, then our opacity should be close to 1, and thus we should assign more importance to that color being visible.
+                    We can then calculate the mean squared error between all predicted colors from the actual color, and backprop our color and density.</p>
+                <p>The inputs to this are of shape (# of rays sampled, # of points sampled per ray, 3) for color,  (# of rays sampled, # of points sampled per ray, 1) for density, and 
+                    step size which I decided to just keep a constant \(\frac{\text{far} - \text{near}}{64}\), despite the distances between samples
+                actually being slightly different.</p>
+                <h2>Lego Example</h2>
+                <h3>Hyperparameters</h3>
+                <p>Batch size = 10,000 rays, 64 points per ray</p>
+                <p>Iterations = 3000</p>
+                <p>Near = 2, Far = 6</p>
+                <p>Adam optimizer learning rate = 5e-4</p>
+                <p>In order to see how our model is generalizing, we'll be rendering the 0th validation image every 
+                    200 steps. Here is the ground truth:
+                </p>
+                <div class = 'image-item'>
+                    <img src = 'nerf_validation_0th.jpg'>
+                    <p>ground truth</p>
+                </div>
+                <h2>Training Progress On Validation Image</h2>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './predicted_images_lego/predicted_image_000.png'>
+                        <p>epoch 200</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './predicted_images_lego/predicted_image_002.png'>
+                        <p>epoch 600</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './predicted_images_lego/predicted_image_006.png'>
+                        <p>epoch 1400</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './predicted_images_lego/predicted_image_006.png'>
+                        <p>epoch 1800</p>
+                    </div>
+                </div>
+                <p>I actually forgot to save the image during the last iteration. However, the GIF
+                    that you will later see uses the full model.
+                </p>
+                
+                <p>Here is the PSNR curve on the validation set:</p>
+                <div class = 'image-item'>
+                    <img src = './predicted_images_lego/psnr_over_epochs (1).png'>
+                </div>
+                <h2>Rendering of the lego set from novel views</h2>
+                <p>if the GIF isn't playing, reload the site</p>
+                <div class = 'image-item'>
+                    <img src = './predicted_images_lego/rendered_video.gif' width = 400>
+                </div>
+                <h1>Lafufu example</h1>
+                <p>running the same setup on a mock dataset provided by staff, we can get something like this
+                </p>
+                <p>Hyperparameters:</p>
+                <p>num_epochs = 3000</p>
+                <p>batchSize = 10000 rays, 64 points per ray (ie ~640,000 points per batch)</p>
+                <p>L = 10 (positional encoding for world position)</p>
+                <p>l = 4 (positional encoding for direction)</p>
+                <p>Adam gradient descent with lr = 5e-4</p>
+                <p>near, far = 0.02, 0.5 meters</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './lafufu_outputs_10k_small/lafufu_10k_small/predicted_image_001.png' width = 200>
+                        <p>epoch 200</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './lafufu_outputs_10k_small/lafufu_10k_small/predicted_image_002.png' width = 200>
+                        <p>epoch 400</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './lafufu_outputs_10k_small/lafufu_10k_small/predicted_image_005.png' width = 200>
+                        <p>epoch 1000</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './lafufu_outputs_10k_small/lafufu_10k_small/predicted_image_010.png' width = 200>
+                        <p>epoch 1800</p>
+                    </div>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './psnr_val_lafufu_small.png' width = 600>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './lafufu_10k_val3_small.gif' width = 400>
+                </div>
+                
+                
+                <h1>Own Example</h1>
+                <p>However, the hard part isn't in the rendering step but rather in calibration and choosing 
+                    hyper parameters. 
+                </p>
+                <p>Hyperparameters:</p>
+                <p>num_epochs = 3000</p>
+                <p>batchSize = 10000 rays, 64 points per ray (ie ~640,000 points per batch)</p>
+                <p>L = 10 (positional encoding for world position)</p>
+                <p>l = 4 (positional encoding for direction)</p>
+                <p>Adam gradient descent with lr = 5e-4</p>
+                <p>near, far = 0.2, 0.5 meters</p>
+                <h2>Training Progress On Validation Image</h2>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/renderings/predicted_image_001.png' width = 200>
+                        <p>epoch 200</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/renderings/predicted_image_004.png' width = 200>
+                        <p>epoch 800</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/renderings/predicted_image_008.png' width = 200>
+                        <p>epoch 1600</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/renderings/predicted_image_012.png' width = 200>
+                        <p>epoch 2400</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './sf_val_image0.JPG'>
+                        <p>ground truth</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/renderings/predicted_image_final.png'>
+                        <p>Final</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/mse_train.png' width = '450'>
+                        <p>Training MSE</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './sf_final_outputs/psnr_val_sf_final.png' width = '450'>
+                        <p>Validation PSNR</p>
+                    </div>
+                </div>
+                
+                
+                <div class = 'image-item'>
+                    <img src = './sf_final_outputs/new_sf_1.gif'>
+                    <p>gif of novel views</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
