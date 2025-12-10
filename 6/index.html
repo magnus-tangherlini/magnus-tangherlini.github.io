@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Test Page</title>
+  <link rel="stylesheet" href="../style.css"> <!-- your stylesheet -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        /* rotate helper - add class="rotated" to any <img> you want flipped */
+        .rotated {
+            transform: rotate(180deg);
+            transform-origin: center;
+            display: block; /* avoid inline layout surprises */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            <!--
+            <ul>
+                <li><a href="#0">0. Camera Calibration and Capturing a 3D scan</a></li>
+                <li><a href="#1">1. Neural Field to 2D image</a></li>
+                <li><a href="#2-1">2.1 Corner Detection and ANMS</a></li>
+                <li><a href="#2-2">2.2 Feature Descriptors</a></li>
+                <li><a href="#2-3">2.3 Feature Matching</a></li>
+                <li><a href="#2-4">2.4 RANSAC</a></li>
+                <li><a href="#2-5">2.4 RANSAC</a></li>
+                <li><a href="#2-6">2.4 RANSAC</a></li>
+                
+                
+            </ul>
+        -->
+        </nav>
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> > 
+                <span class="current">Project 6</span>
+            </nav>
+
+            <section class="header">
+                <h1>Fun With Diffusion Models and Flow Matching</h1>
+                <div class="header-meta">
+                    <p class="authorship">Author: Magnus Tangherlini</p>
+                    <p class="date">Dec 5th 2025</p>
+                </div>
+            
+            </section>
+            <div class="project-description">
+                <h1>Project Overview</h1>
+                <p>In this project we'll see how we can mess around with an
+                    already pre-built diffusion models in order to create optical illusions,
+                    as well as look at how we can create our own flow-matching model in order to 
+                    create novel images that look like they're from NMINST dataset from noise.
+                </p>
+            </div>
+            <div class = 'project-details'>
+                <h1>Part A: The Power of Diffusion Models!</h1>
+                <p>Here we're using DeepFloyd IF diffusion model trained by Stability AI. It takes in a prompt and generates an image.
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part0/stage2_0_an_oil_painting_of_a_fox.png' width = 300>
+                        <p>an oil painting of a fox</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part0/stage2_1_a_field_of_sheep_in_the_irish_.png' width = 300>
+                        <p>a field of sheep in the irish countryside</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part0/stage2_2_a_guitar_player_in_the_style_o.png' width = 300>
+                        <p>a guitar player in the style of monet</p>
+                    </div>
+                </div>
+                
+
+                <h2>Part 1.1 The Forward Process</h2>
+                <p>The main idea behind diffusion is that we'll be moving from noise to an actual image. In order to train our 
+                    model, we'll first need to add noise and teach it how to progressively remove noise until we get our image. 
+                    The main idea is for larger timesteps, noise should accumulate. 
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/campanile_resized.png' width = "150" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=250.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 250</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=500.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 500</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=750.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 750</p>
+                    </div>
+                </div>
+                <h2>Part 1.2 Classical Denoising</h2>
+                <p>As we tried in project 2, we can attempt to denoise an image by simply running a gaussian kernel over our image. Doing so will reduce the high frequencies and "denoise"</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=250.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=500.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=750.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src='./part1_outputs/part1-2/denoised_t=250.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 250</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src='./part1_outputs/part1-2/denoised_t=500.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 500</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src='./part1_outputs/part1-2/denoised_t=750.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 750</p>
+                    </div>
+                </div>
+                <p>From a distance this may look ok but we lose a lot of the important details</p>
+                <h2>Part 1.3 One Step Denoising</h2>
+                <p>In one step denoising, we'll predict the amount of noise at timestep \(t\), subtract and renormalize in order to get 
+                    our "original image".
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=250.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=500.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/noisy_t=750.png' width = "150" image-rendering: pixelated;>
+                        
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-3/denoised_t=250.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 250</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-3/denoised_t=500.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 500</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-3/denoised_t=750.png' width = "150" image-rendering: pixelated;>
+                        <p>t = 750</p>
+                    </div>
+                </div>
+                <p>Notice how at larger timesteps, the denoised image starts to no longer resemble our original campanile. This is because
+                    the models noise prediction can recover only so much. 
+                </p>
+                <h2>Part 1.4 Iterative Denoising</h2>
+                <p>In iterative denoising, we'll be maker smaller steps and interpolating the noise between our one-step denoising approach and our current noisey image. This allows
+                    the model to capture finer details:
+                </p>
+                <div class = 'image-row'>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/snapshots/iteration_690.png' width = "150" image-rendering: pixelated;>
+                        <p>\(t=690\)</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/snapshots/iteration_540.png' width = "150" image-rendering: pixelated;>
+                        <p>\(t=540\)</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/snapshots/iteration_390.png' width = "150" image-rendering: pixelated;>
+                        <p>\(t=390\)</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/snapshots/iteration_240.png' width = "150" image-rendering: pixelated;>
+                        <p>\(t=240\)</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/snapshots/iteration_090.png' width = "150" image-rendering: pixelated;>
+                        <p>\(t=90\)</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-1/campanile_resized.png' width = "150" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/gaussian_blurred.png' width = "150" image-rendering: pixelated;>
+                        <p>gaussian blur</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/iterative.png' width = "150" image-rendering: pixelated;>
+                        <p>iterative</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/redone_part1-4/one-step.png' width = "150" image-rendering: pixelated;>
+                        <p>one step</p>
+                    </div>
+
+                </div>
+                <h2>Part 1.5 Diffusion Model Sampling</h2>
+                <p>In the previous section we're starting from a fairly noisy image. However, we can start at even higher levels of noise, like \(t=990\) and iteratively make steps towards denoising.
+                    This is the main idea of diffusion. The prompt we're using for this is "a high quality photo".
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-5/generated_0.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-5/generated_1.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-5/generated_2.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-5/generated_3.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-5/generated_4.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                </div>
+                <h2>Part 1.6 Classifier Free Guidance (CFG)</h2>
+                <p>In classifier guidance, at each time-step we'll denoise with an unconditional prompt, "", as well as our conditioned prompt, "a high quality photo". 
+                    Then, we'll put "emphasis" on our conditioned prompt by adding a weighted difference to our unconditional prompt. For our weight, we'll use \(\gamma =7\). Remember, this 
+                    is just the noise at timestep t.
+                    \[e_{cond} = u_(x_t, t, \text{prompt})\\
+                    e_{uncond} = u_(x_t, t, \text{null})\\
+                    e = e_{uncond} + \gamma(e_{cond} - e_{uncond})\]
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-6/generated_cfg_0.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-6/generated_cfg_1.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-6/generated_cfg_2.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-6/generated_cfg_3.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-6/generated_cfg_4.png' width = "150" image-rendering: pixelated;>
+                    </div>
+                </div>
+                <p>This is thought to be more of a hack than solving the actual problem of diffusion. CFG is just a way of sending our vector further into our 
+                    conditioned manifold, but this might miss out on other images within the manifold. This is why AI images have a certain "feel" to them that's really hard to 
+                    pindown.
+                </p>
+                <h2>Part 1.7 Image-to-Image Translation</h2>
+                <p>For this section, we'll be using a CFG version of iteratively denoising. At each i_start, we'll add the corresponding amount of noise to our image,
+                    and then iteratively denoise. The variable i_start simply refers to how much noise we want to start denoising from (smaller i_starts have more noise and larger
+                    i_starts have less noise). 
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_1.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_5.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_7.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_10.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/denoised_i_start_20.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                </div>
+                <p>You'll see that as i_start increases, we'll get an image that resembles our original more. This is because the amount of initial noise
+                    added is smaller meaning that we can create something resembling our original, while also moving towards the prompt "a high quality image".
+                </p>
+                <h3>a guitar player in the style of monet</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_1.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_5.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_7.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_10.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/monet_denoised_i_start_20.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                </div>
+                <h3>a field of sheep in the irish countryside</h3>
+                <div class = 'image-row'>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_1.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_5.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_7.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'> 
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_10.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7/sheep_denoised_i_start_20.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                </div>
+                <h2>Part 1.7.1 Web Images and Hand Drawn</h2>
+                <p>Here's an image from the Tour De France</p>
+                <div class = 'image-row'>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_i_start_20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_original.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <p>And here's two hand drawn images</p>
+                <div class = 'image-row'>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/drawn_image_i_start_20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/processed_drawing.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <div class = 'image-row'>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/drawn_image_i_start_20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-2/processed_drawn_image.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <h2>Part 1.7.2 Inpainting</h2>
+                <p>In inpainting, we'll fully diffuse our image but at each timestep t, we reforce the unmasked parts of the image to be the pixels
+                    from the original image. This preserves parts outside of the mask, while fully altering the pixels inside the mask.
+                </p>
+                <p>I want to replace the campanile:</p>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/campanile/mask/Image.png' width = "150" image-rendering: pixelated;> 
+                        <p>original</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/campanile/mask/Mask.png' width = "150" image-rendering: pixelated;> 
+                        <p>mask</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/campanile/mask/To Replace.png' width = "150" image-rendering: pixelated;> 
+                        <p>to replace</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/campanile/drawn_image_i_start_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                </div>
+                <p>Say I want to remove the cyclists from the image:</p>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_1/mask/Image.png' width = "150" image-rendering: pixelated;> 
+                        <p>original</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_1/mask/Mask.png' width = "150" image-rendering: pixelated;> 
+                        <p>mask</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_1/mask/To Replace.png' width = "150" image-rendering: pixelated;>
+                        <p>to replace</p> 
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_1/image_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                </div>
+                <p>Say I really like this cloud and want to replace the coluseum with something else:</p>
+                <div class ='image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_2/mask/Image.png' width = "150" image-rendering: pixelated;> 
+                        <p>original</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_2/mask/Mask.png' width = "150" image-rendering: pixelated;> 
+                        <p>mask</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_2/mask/To Replace.png' width = "150" image-rendering: pixelated;> 
+                        <p>to replace</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/personal_2/image_3.png' width = "150" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                </div>
+                <h2>Part 1.7.3 Text Conditioning Image-to-Image translation</h2>
+                <p>Instead of simply pushing our image towards "a high quality photo" we can push it towards the prompt of our choosing</p>
+                <h3>an oil painting of a snowy mountain village</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/mountain_village/drawn_image_i_start_20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-2/campanile/mask/Image.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <h3>a soccer player</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/cyclist/20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/web_image_original.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <h3>a frog in the style of monet</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/1.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 1</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/3.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 3</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/5.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 5</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/7.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 7</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/10.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 10</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-3/monet/20.png' width = "100" image-rendering: pixelated;>
+                        <p>i_start = 20</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part1_outputs/part1-7-1/hand-drawn-1/processed_drawing.png' width = "100" image-rendering: pixelated;>
+                        <p>original</p>
+                    </div>
+                </div>
+                <h2>Part 1.8 Visual Anagrams</h2>
+                <p>In visual anagrams, at each time step we'll calculate the CFG noise from with respect to one prompt, and then rotate the canvas 180 degrees, 
+                    and calculate the CFG noise with respect to another prompt. Its important that in order to keep symmetry, we need to reflip the noise estimate from the rotated convas 
+                    Then we'll simply average the noise estimates and iteratively denoise.
+
+                </p>
+                <h3>an oil painting of people around a campfire / an oil painting of an old man</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img  src ='./part1_outputs/part1-8/image_campfire.png' width = "100" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img class="rotated" src ='./part1_outputs/part1-8/image_campfire.png' width = "100" image-rendering: pixelated;>
+                    </div>
+                </div>
+                <h3>a dragon / a cute corgi</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img  src ='./part1_outputs/part1-8/image_corgi.png' width = "100" image-rendering: pixelated;>
+                    </div>
+                    <div class = 'image-item'>
+                        <img class="rotated" src ='./part1_outputs/part1-8/image_corgi.png' width = "100" image-rendering: pixelated;>
+                    </div>
+                </div>
+                <h3>a guitar player in the syle of monet / a frog in the style of monet</h3>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img  src ='./part1_outputs/part1-8/image_frog.png' width = "100" image-rendering: pixelated;>
+
+                    </div>
+                    <div class = 'image-item'>
+                        <img class="rotated" src ='./part1_outputs/part1-8/image_frog.png' width = "100" image-rendering: pixelated;>
+
+                    </div>
+                </div>
+                <h2>Part 1.9 Hybrid-Images</h2>
+                <p>In hybrid-images, we want to include both prompts within one image. To do this, we'll calculate the CFG noise estimates 
+                    with respect to one prompt, the CFG noise estimates with respect to another prompt, then run a low-pass filter on one of the noise estimates, and a 
+                    high pass filter on the other. Then we'll simply add them back together and denoise the canvas. 
+                </p>
+                <h3>a lithograph of a waterfall / a lithograph of a skull</h3>
+                <div class = 'image-item'>
+                    <img  src ='./part1_outputs/part1-9/image_lithograph.png' width = "100" image-rendering: pixelated;>
+
+                </div>
+                <h3>an oil painting of a fox / an oil painting of a snowy mountain village</h3>
+                <div class = 'image-item'>
+                    <img  src ='./part1_outputs/part1-9/image_fox.png' width = "100" image-rendering: pixelated;>
+
+                </div>
+                <h3>a beautiful sunset / a dragon</h3>
+                <div class = 'image-item'>
+                    <img  src ='./part1_outputs/part1-9/image_dragon.png' width = "100" image-rendering: pixelated;>
+                </div>
+                    
+
+                <h1>Part B: Flow Matching From Scratch</h1>
+                <h2>Part 1.2 Noisy Images</h2>
+                <p>To train a denoiser, like the UNet, we'll add a specific amount of noise like \(\sigma = 0.5\) to each image, 
+                    send it through our UNet, and backpropogate on how close it is to the original image using the expected L2 loss.
+                </p>
+                <p>Here is what the numbers look like after using the forward function with  \(\sigma = [0, 0.2, 0.4, 0.5, 0.6, 0.8, 1]\) noise to them</p>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/noisy_images.png' width = 1000>
+                </div>
+                <h2>Part 1.2.1 Training a Simple UNet</h2>
+                <p>After training, we can see the models output at epochs 1 and 5 for noise levels \(\sigma = 0.5\)</p>
+                <div class = 'image-row'>
+                    <div class = "image-item">
+                        <img src = './part2_outputs/denoising_epoch_1.png' width ='500'>
+                    </div>
+                    
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/denoising_epoch_5.png' width = '500'>
+                    </div>
+                </div>
+                <p>Despite these being different numbers, you can see that the one-shot cleaning on epoch 5 is able to reduce the grey noise around the number better than epoch 1</p>
+                <h3>Training Loss</h3>
+                <p>Here is what the training loss on the images looks like</p>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/training_loss_curve_unet.png' width = '500'>
+                </div>
+
+                <h3>Part 1.2.2 Out Of Distribution Testing</h3>
+                <p>Because we trained the model on denoising on noise levels \(\sigma = 0.5\), we can 
+                    see what the model outputs if we were to denoise an image for different noise levels.
+                    This is the model after training for 5 epochs.
+                </p>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/noise_levels_denoising.png' width = '800'>
+                </div>
+                <p>I think its still incredibly impressive that the one-shot denoising process can almost recreate
+                    the original number even after adding tons of noise.
+                </p>
+
+                <h3>Part 1.2.3 Denoising Pure Noise</h3>
+                <p>What happens if we decide to fully input noise into our model instead of taking our 
+                    image and adding noise? 
+                </p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/full_noise/pure_denoising_epoch_1.png' width = 300>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/full_noise/pure_denoising_epoch_5.png' width = 300>
+                    </div>
+                </div>
+                <p>Notice that all outputs produce almost the exact same image. This is because the loss we're using
+                    optimizes moving to the average, so the output looks like an average of all the numbers in NMINST. 
+                </p>
+                <h3>Loss Curve on Full Noise Denoising</h3>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/full_noise/training_loss_curve_full_noise.png' width = 500>
+                </div>
+                
+
+                <h2>Part 2: Training a Flow Matching Model</h2>
+                <h3>Part 2.1 Adding Time Conditioning and Sampling</h3>
+                <p>In this section, instead of doing a single step denoising process, we'll want to calculate the "flow" between noise
+                    and clean. To do this, we need to define the image at timestep \(t\). We'll call this new image \(x_t\) and it'll be defined 
+                    \[x_t = (1-t)x_0 + tx_1\]
+                    where \(t\) is within the range \((0,1)\). If \(t=1\) that means a clean image and if \(t=0\) that means a fully noise image. We can think of this 
+                    as a vector pointing from noise to clean. Our learning objective will instead be predicting this vector for each \(t\) which means it'll look something like: 
+                    \[\mathbb{E}||(x_1-x_0) - u(x_t, t)||^2\].
+                    Then in order to actually get a sample, we can sum along this vector field that our model predicts at each timestep \(t\): 
+                    \[x_t = x_t + \frac{1}{T}u(x_t, t)\]
+                </p>
+                <div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/time_fm_samples_epoch_1.png' width = 800>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/time_fm_samples_epoch_5.png' width = 800>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/time_fm_samples_epoch_10.png' width = 800>
+                    </div>
+                </div>
+                <p>Still not great... We're missing something</p>
+                <h3>Training loss curve</h3>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/time_fm_checkpoints/training_loss_curve_time_fm.png' width = 500>
+                </div>
+                
+
+                <h2>Part 3: Adding Class Conditioning and Classifier Free Guidance</h2>
+                <p>With class conditioning, we can actually select which number we want to produce
+                    by using a one-hot encoding of the label. Remember in the last section how we did CFG using our unconditional prompt ""? 
+                    We can actually do the exact same thing here when sampling, calculating our model using class conditioning and without, and then 
+                    weight towards the class conditioned images at each timestep \(t\) when summing:
+                    \[u_{cond} = u_(x_t, t, c)\\
+                    u_{uncond} = u_(x_t, t, 0)\\
+                    u = u_{uncond} + \gamma(u_{cond} - u_{uncond}) \\
+                    x_t = x_t + \frac{1}{T}u
+                    \]
+
+                </p>
+                <div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/cfg_samples_epoch_1.png' width = 800>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/cfg_samples_epoch_5.png' width = 800>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/cfg_samples_epoch_10.png' width = 800>
+                    </div>
+                </div>
+                <h3>Training Loss Curve</h3>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/cfg_checkpoints/training_loss_curve_cfg.png' width = 500>
+                </div>
+                <h3>Without Scheduler</h3>
+                <p>Because simplicity in our model is best, we can remove the scheduler and 
+                    increase the batch size to 128 in order to produce similiar results.
+                </p>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/wo_scheduler/cfg_samples_epoch_1.png' width = 800>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/wo_scheduler/cfg_samples_epoch_5.png' width = 800>
+                </div>
+                <div class = 'image-item'>
+                    <img src = './part2_outputs/wo_scheduler/cfg_samples_epoch_10.png' width = 800>
+                </div>
+                <p>And heres a side by side comparison between using a scheduler and not on epoch 10</p>
+                <div class = 'image-row'>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/cfg_samples_epoch_10.png' width = 500>
+                        <p>With Scheduler</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <img src = './part2_outputs/wo_scheduler/cfg_samples_epoch_10.png' width = 500>
+                        <p>Without Scheduler</p>
+                    </div>
+                </div>
+                <p>It turns out flow models are fairly robust without a scheduler.</p>
+
+                
+
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
