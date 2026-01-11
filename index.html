@@ -1,20 +1,170 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Portfolio</title>
+    <meta charset="UTF-8">
+    <title>Magnus Tangherlini</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
+        .homepage-content {
+            margin: 0 auto;
+            padding: 2em;
+            max-width: 1000px;
+        }
+
+        .homepage-header {
+            border-bottom: 2px solid var(--border-dark);
+            margin-bottom: 2em;
+            padding-bottom: 1em;
+        }
+        .homepage-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2em;
+            margin-bottom: 3em;
+        }
+
+        .project-card {
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: border-color 0.2s ease;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .project-card-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .project-card-content {
+            padding: 1.5em;
+        }
+
+        .project-card-title {
+            font-size: 1.2em;
+            margin: 0 0 0.5em 0;
+            color: var(--primary-text);
+            font-weight: 500;
+        }
+
+        .project-card-description {
+            color: var(--secondary-text);
+            font-size: 0.9em;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .links-section {
+            margin-top: 3em;
+            padding-top: 2em;
+            border-top: 2px solid var(--border-dark);
+        }
+
+        .links-section h1 {
+            font-size: 2em;
+            margin-bottom: 1em;
+        }
+
+        .links-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1em;
+            list-style: none;
+            padding: 0;
+        }
+
+        .links-list li {
+            margin: 0;
+        }
+
+        .links-list a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 2px;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        .links-list a:hover {
+            color: var(--accent-blue);
+            background-color: var(--background-light);
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to My CS180 Portfolio!</h1>
-    <a href="./2/index.html">Project 2</a>
-    <a href="./3/index.html">Project 3</a>
-    <a href="./4/index.html">Project 4</a>
-    <a href="./5/index.html">Project 5</a>
-    <a href="./6/index.html">Project 6</a>
+    <div class="homepage-content">
+        <div class="homepage-header">
+            <h1>Hi! I'm Magnus</h1>
+        </div>
+
+        <div class="project-description">
+            <h1>Projects from CS 180: Introduction to Computer Vision and Computational Photography</h1>
+        </div>
+
+        <div class="projects-grid">
+            <a href="./2/index.html" class="project-card">
+                <img src="2/aligned_photos/cathedral_NCC.jpg" alt="Project 2" class="project-card-image">
+                <div class="project-card-content">
+                    <h3 class="project-card-title">Colorizing the Prokudin-Gorskii Collection</h3>
+                    <p class="project-card-description">Aligning three separate color channel images to produce colored photographs from glass plate negatives.</p>
+                </div>
+            </a>
+
+            <a href="./3/index.html" class="project-card">
+                <img src="3/results/2-3/final_result.jpg" alt="Project 3" class="project-card-image">
+                <div class="project-card-content">
+                    <h3 class="project-card-title">Convolutions, Filters, and Blending</h3>
+                    <p class="project-card-description">Exploring image filters, hybrid images, Gaussian/Laplacian stacks, and multiresolution blending.</p>
+                </div>
+            </a>
+
+            <a href="./4/index.html" class="project-card">
+                <img src="4/output/part2/wurster_total_hand_mosaic.jpg" alt="Project 4" class="project-card-image">
+                <div class="project-card-content">
+                    <h3 class="project-card-title">Panoramic Photos</h3>
+                    <p class="project-card-description">Creating panoramic mosaics using homographies and automatic image alignment techniques.</p>
+                </div>
+            </a>
+
+            <a href="./5/index.html" class="project-card">
+                <img src="5/lego_rays.png" alt="Project 5" class="project-card-image">
+                <div class="project-card-content">
+                    <h3 class="project-card-title">NeRF</h3>
+                    <p class="project-card-description">Reconstructing 3D scenes from 2D images using Neural Radiance Fields (NeRF).</p>
+                </div>
+            </a>
+
+            <a href="./6/index.html" class="project-card">
+                <img src="6/part1_outputs/part0/stage2_0_an_oil_painting_of_a_fox.png" alt="Project 6" class="project-card-image">
+                <div class="project-card-content">
+                    <h3 class="project-card-title">Diffusion Models</h3>
+                    <p class="project-card-description">Implementing and working with diffusion models for image generation.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="links-section">
+            <h1>Links</h1>
+            <ul class="links-list">
+                <li><a href="https://github.com/magnus-tangherlini" target="_blank">GitHub</a></li>
+                <li><a href="https://www.linkedin.com/in/magnus-tangherlini" target="_blank">LinkedIn</a></li>
+                <li><a href="mailto:magnus@example.com">Email</a></li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
