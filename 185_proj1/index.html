@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Test Page</title>
+  <link rel="stylesheet" href="../style.css"> <!-- your stylesheet -->
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <style>
+        /* rotate helper - add class="rotated" to any <img> you want flipped */
+        .rotated {
+            transform: rotate(180deg);
+            transform-origin: center;
+            display: block; /* avoid inline layout surprises */
+        }
+    </style>
+</head>
+
+
+<body>
+    <div class="container">
+        <nav class="sidebar">
+            
+        </nav>
+        <main class="content">
+            <nav class="breadcrumb">
+                <a href="../index.html">Home</a> > 
+                <span class="current">Project 1</span>
+            </nav>
+
+            <section class="header">
+                <h1>Imitation Learning with MSE Loss and Flow Matching</h1>
+                <div class="header-meta">
+                    <p class="authorship">Author: Magnus Tangherlini</p>
+                    <p class="date">Feb 7th, 2026</p>
+                </div>
+            
+            </section>
+            <div class="project-description">
+                <h1>Project Overview</h1>
+                <p>In this project we'll be training two different types of imitation learning models,
+                    one with MSE Loss and the other using Flow Matching, in order to have a robot move a block of the shape 'T' over a green 'T'.
+                    Here is a link to the <a href="https://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw1.pdf">spec</a> and how to implement the different loss functions.
+
+                </p>
+                
+            </div>
+            <div class = 'project-details'>
+                <h1>What is imitation learning?</h1>
+                <p>In imitation learning, we'll be using a trajectory of states and actions 
+                    given to us by some ground truth professional, and training a model in order to sample those
+                    actions for some given state. The caveat is that a small mistake in our model can cascade throughout the entire trajectory. For example,
+                    making a small mistake at the start of our trajectory can move our model into a state that it has never seen before,
+                    and thus sampling an action that the model may not be very confident in leading to even more mistakes. To get around this, we'll sample a small horizon of actions, based on the current state/observation.
+
+                </p>
+                <h1>MSE Loss</h1>
+                <p>We'll be using the loss as defined in the spec. The current model takes in states, actions, and chunk size of 8 (the amount of timesteps to predict for). I am using two layers of size 128, and ReLU activations between. 
+                    Here is a plot of the loss and reward curves at intervals of 10k steps.
+                </p>
+                <div class ='image-item'>
+                    <img src = './mse_combined.png' width = 800>
+                </div>
+                    
+                <h1>Using Flow Matching</h1>
+                <p>In Flow Matching, not only will be taking in states, actions, and chunk size, but we will also want to take in time (ie how many steps should we take to fully denoise). Like the CS 180 project
+                    we can move our action points from some random distribution, to a more fixed distribution. 
+                </p>
+                <p>
+                    And here's a comparison of the loss plots between MSE and Flow Matching:
+                </p>
+                <div class = 'image-item'>
+                    <img src = './comparison_plot copy.png' width = 800>
+                </div>
+                <p>It's interesting to note that although the loss on the flow matching is higher,
+                    the rewards are significantly higher. This may be due to the fact that flow matching is better at 
+                    modeling the actual distribution of the professional data distribution (ground truth actions for given states), while MSE optimizes for moving to the 
+                    average of all actions and states. 
+                </p>
+                <p>
+                    We can also compare videos. I've decided to introduce two significant points, at timestep 40,000 as well as the finally
+                    product. I recommend starting both videos at the same time to see the difference:
+
+                </p>
+                <div class = 'image-row'>
+                    <p>eval/rollout_ep4 timestep 40k:</p>
+                    <div class = 'image-item'>
+                        <video width="250" controls>
+                            <source src="./flow_40k.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Flow Matching</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <video width="250"controls>
+                            <source src="./mse_40k.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>MSE</p>
+                    </div>
+                </div>
+                <p>We can see here that flow matching is much smoother and doesn't get stuck repeating the same actions over
+                    and over like the MSE model does. I think its interesting that because there's 
+                    a specified amount of time left on the trajectory, that the flow matching model will actually knock the block out of position.
+                </p>
+                <p>Here's an incredibly drastic showing of the difference between Flow and MSE:
+                </p>
+                <div class = 'image-row'>
+                    <p>eval/rollout_ep1 timestep 70k:</p>
+                    <div class = 'image-item'>
+                        <video width="250" controls>
+                            <source src="./flow_70k.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>Flow Matching</p>
+                    </div>
+                    <div class = 'image-item'>
+                        <video width="250"controls>
+                            <source src="./mse_70k.mp4" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <p>MSE</p>
+                    </div>
+                </div>
+                <p>I've left out quite a lot of videos. By the 70k timestep, both models perform pretty well. However,
+                    here it's clear that flow matching is a lot more consisten in making progress towards its goal, while MSE 
+                    can sometimes get stuck and then all of a sudden go for the solution.
+                </p>
+                
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
+
