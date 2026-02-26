@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CS185 HW2 - Policy Gradient</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <ul>
+        <li><a href="#overview">Project Overview</a></li>
+        <li><a href="#CartPole">CartPole Experiments</a></li>
+        <li><a href="#small-batch-plots">Small Batch Learning Curves</a></li>
+        <li><a href="#large-batch-plots">Large Batch Learning Curves</a></li>
+        <li><a href="#questions">CartPole Questions</a></li>
+        <li><a href="#baseline">Baseline Experiments</a></li>
+        <li><a href="#lunarlander">LunarLander-v2 Experiments</a></li>
+        <li><a href="#invertedpendulum">InvertedPendulum-v4 Experiments</a></li>
+      </ul>
+    </nav>
+    <main class="content">
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> > 
+        <span class="current">CS185 HW2</span>
+      </nav>
+      
+      <section class="header">
+        <h1>Policy Gradient Methods for CartPole</h1>
+        <div class="header-meta">
+          <p class="authorship">Author: Magnus Tangherlini</p>
+          <p class="date">Date: Feb 25, 2026</p>
+        </div>
+      </section>
+
+      <div class="project-description" id="overview">
+        <h1>Project Overview</h1>
+        <p>This assignment explores policy gradient methods for reinforcement learning. We compare different value estimators (trajectory-centric vs. reward-to-go) and examine the effects of advantage normalization and batch size on learning performance. </p>
+        <p>As much as I would like to insert all the math again, I'll just refer you to the spec for details: <a href="https://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw2.pdf">spec</a></p>
+      </div>
+
+    
+      <div class="project-details">
+        <h1 id="CartPole">CartPole Environment</h1>
+        <h2>Policy Gradient and Reward-to-Go Value Estimators</h2>
+        <p>
+            
+        </p>
+        <h2></h2>
+        <p>The goal is to achieve a maximum return of 200 for the best configurations in both small and large batch cases.</p>
+        <p>We conducted eight experiments total, comparing different configurations:</p>
+        <ul>
+          <li><strong>Small batch experiments</strong></li>
+          <ul>
+            <li>Trajectory-centric value estimator without advantage normalization</li>
+            <li>Trajectory-centric value estimator with advantage normalization</li>
+            <li>Reward-to-go value estimator without advantage normalization</li>
+            <li>Reward-to-go value estimator with advantage normalization</li>
+          </ul>
+          <li><strong>Large batch experiments</strong></li>
+          <ul>
+            <li>Trajectory-centric value estimator without advantage normalization</li>
+            <li>Trajectory-centric value estimator with advantage normalization</li>
+            <li>Reward-to-go value estimator without advantage normalization</li>
+            <li>Reward-to-go value estimator with advantage normalization</li>
+          </ul>
+        </ul>
+
+        <h2>Command Line Configurations</h2>
+        <p>Exact command line configurations used to run the CartPole experiments:</p>
+        <pre><code>
+            # Small batch experiments (batch size 1000):
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 1000 \
+            --exp_name cartpole
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 1000 \
+            -rtg --exp_name cartpole_rtg
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 1000 \
+            -na --exp_name cartpole_na
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 1000 \
+            -rtg -na --exp_name cartpole_rtg_na
+
+            # Large batch experiments (batch size 4000):
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 4000 \
+            --exp_name cartpole_lb
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 4000 \
+            -rtg --exp_name cartpole_lb_rtg
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 4000 \
+            -na --exp_name cartpole_lb_na
+
+            uv run src/scripts/run.py --env_name CartPole-v0 -n 100 -b 4000 \
+            -rtg -na --exp_name cartpole_lb_rtg_na
+        </code></pre>
+        
+      </div>
+
+      <div class="project-details">
+        <h1 id="small-batch-plots">Small Batch Learning Curves</h1>
+        <p>Comparison of learning curves (average return vs. number of environment steps) for the small batch experiments. The x-axis shows the number of environment steps (Train EnvstepsSoFar).</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/cartpole_small_batch_learning_curves.png" alt="Small Batch Learning Curves" width="800">
+        </div>
+      </div>
+
+      <div class="project-details">
+        <h1 id="large-batch-plots">Large Batch Learning Curves</h1>
+        <p>Comparison of learning curves (average return vs. number of environment steps) for the large batch experiments. The x-axis shows the number of environment steps (Train EnvstepsSoFar).</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/cartpole_large_batch_learning_curves.png" alt="Large Batch Learning Curves" width="800">
+
+        </div>
+      </div>
+      
+
+      <div class="project-details">
+        <h1 id="questions">Questions</h1>
+        
+        <h2>1. Which value estimator has better performance without advantage normalization: the trajectory-centric one, or the one using reward-to-go?</h2>
+        <p>If we compare the two learning curves without normalizaion (pink is reward-to-go, teal is trajectory-centric), 
+            we can see that the reward-to-go curve is generally faster at reaching higher returns. 
+        </p>
+
+        <h2>2. Between the two value estimators, why do you think one is generally preferred over the other?</h2>
+        <p>Reward-to-go is generally preferred over the trajectory-centric estimator because it is less variable. This stabilility is because the reward-to-go estimator is based on the immediate rewards, which are more consistent than the trajectory-centric estimator, which is based on the entire trajectory</p>
+
+        <h2>3. Did advantage normalization help?</h2>
+        <p>Using advantage normalization did not seem to actually help that much. It mainly helped with convergence in the large-batch full trajectory case.</p>
+
+        <h2>4. Did the batch size make an impact?</h2>
+        <p>A larger batch size helped speed up convergence in terms of the full trajectory case. With a smaller batch size, the full trajectory case took much longer to converge.</p>
+      </div>
+
+      <div class="project-details">
+        <h1 id="baseline">Baseline Experiments</h1>
+        <p>In this section, we examine the baseline value function learning and its impact on policy performance.
+            For this part, we'll be comparing using an actor-critic without a baseline value function versus using an actor-critic with a baseline value function. 
+            A baseline value function is a function that estimates the value of the current state, and is used to reduce the variance of the policy gradient.
+        </p>
+        <h2>Command Line Configurations</h2>
+        <p>Exact command line configurations used to run the Cheetah experiments:</p>
+        <pre><code>
+            # No baseline
+            uv run src/scripts/run.py --env_name HalfCheetah-v4 -n 100 -b 5000 -eb 3000 -rtg \
+            --discount 0.95 -lr 0.01 --exp_name cheetah
+
+            # Baseline
+            uv run src/scripts/run.py --env_name HalfCheetah-v4 -n 100 -b 5000 -eb 3000 -rtg \
+            --discount 0.95 -lr 0.01 --use_baseline -blr 0.01 -bgs 5 --exp_name cheetah_baseline
+
+            # Small Baseline Gradient Steps
+            uv run src/scripts/run.py --env_name HalfCheetah-v4 -n 100 -b 5000 -eb 3000 -rtg \
+            --discount 0.95 -lr 0.01 --use_baseline -blr 0.01 -bgs 1 --exp_name cheetah_small_baseline
+        </code></pre>
+        
+        <h2>Baseline Learning Curves</h2>
+        <p>Learning curve for the baseline loss:</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/cheetah_baseline_loss.png" alt="Baseline Loss Learning Curve" width="800">
+        </div>
+        
+        <p>Learning curve for the eval return:</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/cheetah_all_eval_return.png" alt="Eval Return Learning Curve" width="800">
+
+        </div>
+        <p>As per the spec, using a baseline value function that has only 1 gradient step per batch takes longer to reduce the loss than using a baseline
+            value function that has 5 gradient steps per batch. Despite similiar loss curves by the 500,000 environment step mark, the average return for the baseline
+            with 5 gradient steps per batch is significantly higher than the one without.
+        </p>
+
+        
+
+        <h2>Cheetah Running</h2>
+        <p>Video of the trained cheetah agent:</p>
+        <div class="image-item">
+          <video width="800" controls>
+            <source src="./cheetah_running.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+            
+          </video>
+          <p>Cheetah Running With Baseline</p>
+        </div>
+      </div>
+
+      <div class="project-details">
+        <h1 id="lunarlander">LunarLander-v2 Experiments</h1>
+        <p>For this section, we'll be exploring using generalized advantage estimations (GAE). GAE is a technique that allows us to exponentially weight all the n-step advantage estimates and 
+            factor them into our baseline estimate. </p>
+        
+        <h2>Learning Curves for Different λ Values</h2>
+        <p>Single plot with learning curves for all LunarLander-v2 experiments:</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/lunar_lander_lambda_comparison.png" alt="LunarLander Lambda Comparison" width="800">
+        </div>
+
+        <h2>Effect of λ on Task Performance</h2>
+
+        <h2>Understanding λ</h2>
+        <p><strong>What does λ correspond to?</strong></p>
+        <p>A lambda of 0 corresponds to simply using the simple baseline value function: Q(s) - V(s) which has higher bias and less variance. A lambda of 1 corresponds to averaging all the n-step advantage estimates.
+            
+        </p>
+
+        <p><strong>Relation to Task Performance:</strong></p>
+        <p>In terms of performance, we can see that lambda 0 and lambda 1, by the end of the training, lambda 1 has significantly higher returns. 
+            However, the lambdas in between like lambda 0.95, 0.98, and 0.99 have returns that are quicker initially but by the end of training, don't have as high returns as lambda 1. 
+        </p>
+        <h2>Command Line Configurations</h2>
+        <p>Exact command line configurations used to run the LunarLander-v2 experiments:</p>
+        <pre><code>
+            # Lambda 0
+            uv run src/scripts/run.py --env_name LunarLander-v2 --ep_len 1000 --discount 0.99 \
+            -n 200 -b 2000 -eb 2000 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline \
+            --gae_lambda 0 --exp_name lunar_lander_lambda0
+            
+            # Lambda 0.95
+            uv run src/scripts/run.py --env_name LunarLander-v2 --ep_len 1000 --discount 0.99 \
+            -n 200 -b 2000 -eb 2000 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline \
+            --gae_lambda 0.95 --exp_name lunar_lander_lambda0.95
+
+            # Lambda 0.98
+            uv run src/scripts/run.py --env_name LunarLander-v2 --ep_len 1000 --discount 0.99 \
+            -n 200 -b 2000 -eb 2000 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline \
+            --gae_lambda 0.98 --exp_name lunar_lander_lambda1=0.98
+
+            # Lambda 0.99
+            uv run src/scripts/run.py --env_name LunarLander-v2 --ep_len 1000 --discount 0.99 \
+            -n 200 -b 2000 -eb 2000 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline \
+            --gae_lambda 0.99 --exp_name lunar_lander_lambda0.99
+
+            # Lambda 1
+            uv run src/scripts/run.py --env_name LunarLander-v2 --ep_len 1000 --discount 0.99 \
+            -n 200 -b 2000 -eb 2000 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline \
+            --gae_lambda 1 --exp_name lunar_lander_lambda1
+        </code></pre>
+      </div>
+
+      <div class="project-details">
+        <h1 id="invertedpendulum">InvertedPendulum-v4 Experiments</h1>
+        <p>In this one, we'll be exploring how all of these hyperparameters affect the performance of an agent, and how we can combine them in order 
+            to get large returns within a short amount of environmental steps.</p>
+        
+        <h2>Hyperparameter Tuning</h2>
+        <p>Exact command line configurations used to run the Pendulum experiments:</p>
+        <pre><code>
+            # Default
+            uv run src/scripts/run.py --env_name InvertedPendulum-v4 -n 100 -b 5000 -eb 1000 \ --exp_name pendulum
+            
+            #Trial 1
+            uv run src/scripts/run.py --env_name InvertedPendulum-v4 -n 100 -b 5000 -eb 2000 \
+            --discount 0.99 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline -na \
+            --gae_lambda 0.99 --exp_name pendulum
+
+            #Trial 2
+            uv run src/scripts/run.py --env_name InvertedPendulum-v4 -n 50 -b 2000 -eb 2000 \ 
+            --discount 0.99 -l 3 -s 128 -lr 0.001 --use_reward_to_go --use_baseline -na \
+            --gae_lambda 0.99 --exp_name pendulum
+
+            #Trial 3
+            uv run src/scripts/run.py --env_name InvertedPendulum-v4 -n 100 -b 1000 -eb 1000 \
+            --discount 0.99 --use_reward_to_go --use_baseline -na \ 
+            --gae_lambda 0.97 --exp_name pendulum_trial3
+
+        </code></pre>
+
+
+        <h2>Learning Curves Comparison</h2>
+        <p>Learning curves for average returns with best hyperparameters vs. default settings, with environment steps on the x-axis:</p>
+        <div class="image-item">
+          <img src="./plots_185_hw2/inverted_pendulum_learning_curves.png" alt="InvertedPendulum Hyperparameter Comparison" width="800">
+        </div>
+        <h2>Hyperparameter Tuning Discussion</h2>
+        <p>I first started off deciding to go all out on the first trial, having a larger than normal neural network. I then decided that I would decrease the number 
+            of gradient steps per batch to 50 and increase the batch size to 2000. Because these were so far from the goal of hitting 1000 within 100,000 environment steps,
+            I decided that simplicity was better in the model, returning to a neural network with just two layers and 64 neurons per layer. I also went back to the default learning rate of 0.005 and used a GAE lambda of 0.97
+            in order to increase bias slightly and decrease the variance due to the limmited number of training steps. This final trial ended up being the best performing one, returning a score of 1000 within 100,000 environment steps.
+        </p>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>
+
