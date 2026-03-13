@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CS185 HW3 - Soft Actor-Critic</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <ul>
+        <li><a href="#overview">Project Overview</a></li>
+        <li><a href="#cartpole">CartPole Experiments</a></li>
+        <li><a href="#lunarlander">LunarLander Experiments</a></li>
+        <li><a href="#mspacman">Ms. Pac-Man Experiments</a></li>
+        <li><a href="#halfcheetah">HalfCheetah Experiments</a></li>
+        <li><a href="#alpha-comparison">Fixed vs. Auto-Tuned Alpha</a></li>
+        <li><a href="#hopper">Hopper Experiments</a></li>
+      </ul>
+    </nav>
+    <main class="content">
+      <nav class="breadcrumb">
+        <a href="../index.html">Home</a> >
+        <span class="current">CS185 HW3</span>
+      </nav>
+
+      <section class="header">
+        <h1>DQN and Soft Actor-Critic (SAC)</h1>
+        <div class="header-meta">
+          <p class="authorship">Author: Magnus Tangherlini</p>
+          <p class="date">Date: Mar 10, 2026</p>
+        </div>
+      </section>
+
+      <div class="project-description" id="overview">
+        <h1>Project Overview</h1>
+        <p>This assignment explores Deep Q Networks and Soft Actor-Critic (SAC), an off-policy maximum entropy reinforcement learning algorithm. SAC optimizes a trade-off between expected return and entropy, encouraging the agent to explore while still achieving high rewards.</p>
+        <p>For the full details, refer to the spec: <a href="https://rail.eecs.berkeley.edu/deeprlcourse/static/homeworks/hw3.pdf">spec</a></p>
+      </div>
+
+      <div class="project-details" id="cartpole">
+        <h1>DQN</h1>
+        <h2>CartPole Experiments</h2>
+        <p>We begin by validating the DQN implementation on CartPole-v1, a simple discrete action space environment where the agent must balance a pole on a cart.
+          The idea behind a DQN is that we'll use the expected discounted return starting from state s and taking action a and acting optimally as well as using a replay buffer and
+          updating a target network slowly.
+        </p>
+
+        <h3>CartPole Eval Return</h3>
+        <p>Evaluation return over training steps for CartPole-v1:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/cartpole_eval_return.png" alt="CartPole SAC Eval Return" width="800">
+        </div>
+      </div>
+
+      <div class="project-details" id="lunarlander">
+        <h2>LunarLander Experiments</h2>
+        <p>For this section we'll also be adding Double-Q learning, which reduces overestimation bias. We'll have the online network to select the action, and the online to evaluate the action.</p>
+
+        <h3>LunarLander Eval Return</h3>
+        <p>Evaluation return over training steps for LunarLander-v2:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/lunarlander_eval_return.png" alt="LunarLander SAC Eval Return" width="800">
+        </div>
+
+        <h2>Target Network Update Frequency</h2>
+        <p>We also experiment with how often the target network is updated. The target network is a slowly-updated copy of the Q-network used to stabilize training — updating it too frequently can cause instability, while updating too rarely can slow learning.</p>
+        <p>We compare four update frequencies:</p>
+        <ul>
+          <li><strong>Every 100 iterations</strong>: More frequent updates, closer to the online Q-network</li>
+          <li><strong>Every 500 iterations</strong>: Moderate update frequency</li>
+          <li><strong>Every 1000 iterations</strong>: Default setting</li>
+          <li><strong>Every 2000 iterations</strong>: Less frequent updates, more stable but potentially slower to propagate new information</li>
+        </ul>
+        <div class="image-item">
+          <img src="./hw3_plots/target_update_comparison.png" alt="Target Network Update Frequency Comparison" width="800">
+          <p>Chose target_update_comparison to see how frequently updating the target network impacted learning</p>
+        </div>
+        
+      </div>
+
+      <div class="project-details" id="mspacman">
+        <h2>Ms. Pac-Man Experiments</h2>
+        <p>We apply double Q-learning to MsPacman-v0, a high-dimensional Atari environment requiring pixel-based observations. This tests the scalability of SAC beyond simple continuous control tasks.</p>
+
+        <h3>Training vs. Eval Returns</h3>
+        <p>Comparison of training and evaluation returns over the course of training. A gap between training and eval returns can indicate overfitting to the replay buffer or a difference in exploration behavior:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/mspacman_training_vs_eval_returns.png" alt="Ms. Pac-Man Training vs Eval Returns" width="800">
+        </div>
+      </div>
+
+      <div class="project-details" id="halfcheetah">
+        <h1>SAC</h1>
+        <p>In SAC, we'll be training a model for continuous action states. In order to do this, we'll be using entropy and reparameterization in order to create our Q network, policy, and temperature for exploration.</p>
+        <h2>HalfCheetah Experiments</h2>
+        <p>We evaluate SAC on the HalfCheetah-v4 continuous control environment using a fixed temperature α.</p>
+
+        <h3>HalfCheetah Eval Return</h3>
+
+        <p>Evaluation return over training steps:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/halfcheetah_sac_sd1_eval_return.png" alt="HalfCheetah SAC Seed 1 Eval Return" width="800">
+        </div>
+      </div>
+
+      <div class="project-details" id="alpha-comparison">
+        <h2>Fixed vs. Auto-Tuned Alpha</h2>
+        <p>The temperature parameter α controls the entropy regularization strength. Here we compare using a fixed α against automatically tuning α to match a target entropy.</p>
+        <ul>
+          <li><strong>Fixed α</strong>: A constant temperature set at initialization; requires manual tuning per environment</li>
+          <li><strong>Auto-tuned α</strong>: Learned automatically to maintain a target entropy level, reducing the need for per-environment hyperparameter search</li>
+        </ul>
+
+        <h3>Alpha Comparison</h3>
+        <p>Comparison of fixed versus auto-tuned α on HalfCheetah-v4:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/sac_temperature_comparison.png" alt="HalfCheetah SAC Alpha Comparison" width="800">
+        </div>
+
+        <h3>Overall SAC Comparison</h3>
+        <p>Summary comparison across HalfCheetah configurations:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/halfcheetah_sac_eval_return.png" alt="HalfCheetah SAC Comparison" width="800">
+        </div>
+
+        <h3>Discussion</h3>
+        <h4>Does auto-tuning improve or achieve comparable performance to the fixed temperature?</h4>
+        <p>auto-tuning significantly improves the performance of the half-cheetah experiments. Instead of having to run for 1,000,000 environmental steps to achieve 
+          a value of 8000 on the evaluation return, we only need run for around 600,000 steps. 
+        </p>
+
+        <h4>How does the temperature evolve during training? Does it increase, decrease, or stabilize?</h4>
+        <p>The temperature at first decreases drastically, and then continuously increases from then on out.</p>
+
+        <h4>Why might the temperature change in this particular way for HalfCheetah?</h4>
+        <p>The temperature likely changes this particular way for HalfCheetah because initially, the model already has incredibly high entropy so the target entropy is already
+          met. Then the autotuner raises alpha to avoid collapsing to a set of actions too early. Once the policy begins to converge, we will continue to increase the temperature to continously 
+          explore. 
+        </p>
+
+      </div>
+
+      <div class="project-details" id="hopper">
+        <h2>Hopper Experiments</h2>
+        <p>We evaluate SAC on the Hopper-v4 environment, a locomotion task requiring the agent to balance and hop forward without falling over.</p>
+
+        <h3>Hopper Eval Return</h3>
+        <p>Evaluation return over training steps for Hopper-v4:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/hopper_sac_eval_return.png" alt="Hopper SAC Eval Return" width="800">
+        </div>
+        <p>We can see here that the clip-double q learning, achieves significantly higher returns and much quicker than the single-q learning. This is because our double-Q network
+          takes the minimum, and thus becomes a conservative estimate for the Q function. 
+        </p>
+
+        <h3>Hopper Q-Values</h3>
+        <p>Q-value estimates over the course of training. Monitoring Q-values helps diagnose overestimation and instability issues:</p>
+        <div class="image-item">
+          <img src="./hw3_plots/hopper_sac_q_values.png" alt="Hopper SAC Q-Values" width="800">
+        </div>
+        <p>We can also see in this plot that the clipped-double Q values start much lower than the single Q-learning which is expected since taking the minimum is conservative by design.
+          However, because this conservatism prevents the policy from exploting inflated Q-values, the policy improves much more reliably and as a result the Q-values grow as the agent
+        learns to achieve higher returns  </p>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>
